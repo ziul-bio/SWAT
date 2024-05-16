@@ -139,7 +139,8 @@ def main(embed_dir, compression_method, rep_layer=30):
     compressed_embed = load_per_tok_embeds(embed_dir, compression_method, rep_layer=30)
     l = str(rep_layer)
     c = str(compression_method)
-    out_dir = str(embed_dir) + '_compressed'
+    out_dir = f"{embed_dir[:-1]}_compressed"
+    print(f"Saving compressed embeddings to {out_dir}")
     
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
