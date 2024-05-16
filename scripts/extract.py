@@ -4,11 +4,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import argparse
-import pathlib
+
+### Usage ###
+#python scripts/extract.py esm2_t30_150M_UR50D data/some_proteins.fasta embeddings/some_proteins_emb_esm2 --repr_layers 30 --include mean 
+#python scripts/extract.py esm2_t30_150M_UR50D data/some_proteins.fasta embeddings/some_proteins_emb_esm2 --repr_layers 30 --include per_tok
+
+
 
 import torch
-
+import pathlib
+import argparse
 from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained, MSATransformer
 
 
