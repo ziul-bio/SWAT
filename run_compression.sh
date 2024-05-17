@@ -6,7 +6,7 @@ directories=('sumo1_esm2_150M' 'BLAT_ECOLX_Ostermeier2014_esm2_150M'  'pisces_es
 
 # Define the list of methods to loop through
 #methods=('mean' 'bos' 'max_pool' 'pca1' 'pca2' 'pca1-2' 'iDCT' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
-methods=('mean' 'bos' 'maxPool' 'pca1' 'pca2' 'pca1-2' 'iDCT')
+methods=('rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
 
 # Loop through each directory
 for dir in "${directories[@]}"

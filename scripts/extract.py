@@ -7,7 +7,7 @@
 
 ### Usage ###
 #python scripts/extract.py esm2_t30_150M_UR50D data/some_proteins.fasta embeddings/some_proteins_emb_esm2 --repr_layers 30 --include mean 
-#python scripts/extract.py esm2_t30_150M_UR50D data/some_proteins.fasta embeddings/some_proteins_emb_esm2 --repr_layers 30 --include per_tok
+#python scripts/extract.py esm2_t30_150M_UR50D ../LEAP/data/pisces/cullpdb_pc50.0_res0.0-3.0_noBrks_len40-10000_R0.3_Xray_d2023_10_05_chains24357_processed.fasta embeddings/pisces_esm2_150M --repr_layers 30 --include bos mean per_tok
 
 
 

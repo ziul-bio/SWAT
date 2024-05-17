@@ -40,8 +40,8 @@ def features_scaler(features):
 def run_regression(features, target):
     '''this version computes y_pred for train and test sets'''
     # Initialize lists for storing results
-    folds, num_zero_coefs = [], []
-    r2s_train,  maes_train, rmses_train = [], [], []
+    folds, num_nonzero_coefs = [], []
+    r2s_train, maes_train, rmses_train = [], [], []
     r2s_test, maes_test, rmses_test = [], [], []
     rhos_train, rhos_test = [], []
 
@@ -55,12 +55,13 @@ def run_regression(features, target):
         y_train, y_test = target.iloc[train_index], target.iloc[test_index]
 
         # Define and train the regression model
-        model = Lasso(alpha=0.0005, random_state=42, max_iter=10000, tol=0.001)
+        #model = Lasso(alpha=0.0005, random_state=42, max_iter=10000, tol=0.001)
+        model = Lasso(alpha=0.001, random_state=42, max_iter=10000, tol=0.001)
         model.fit(X_train, y_train)
 
         # get the number of non-zero coefficients
         coeficients = model.coef_
-        num_zero_coef = np.sum(coeficients != 0)
+        num_nonzero_coef = np.sum(coeficients != 0)
 
         # Make predictions
         y_pred_train = pd.DataFrame(model.predict(X_train))
@@ -78,33 +79,31 @@ def run_regression(features, target):
         mse_test = metrics.mean_squared_error(y_test, y_pred_test)
         rmse_test = np.sqrt(mse_test)
         rho_test, p_value_test = spearmanr(y_test, y_pred_test)
-        
-        
 
         # Append results
         r2s_train.append(r2_train)
         maes_train.append(mae_train)
         rmses_train.append(rmse_train)
-        rhos_train.append(rho_train)
 
         r2s_test.append(r2_test)
         maes_test.append(mae_test)
         rmses_test.append(rmse_test)
+
+        rhos_train.append(rho_train)
         rhos_test.append(rho_test)
 
         folds.append(kfold + 1)
-        num_zero_coefs.append(num_zero_coef)
+        num_nonzero_coefs.append(num_nonzero_coef)
 
 
         # Return the collected results
-        print(f"Results:  fold {kfold}, r2_test: {r2_test}, rho: {rho_test}, Num coefs: {num_zero_coef}")
-    return r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_zero_coefs
+        print(f"Results:  fold {kfold}, r2_test: {r2_test}, Num coefs: {num_nonzero_coef}")
+    return r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs
 
 
-def save_results(layer, r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_zero_coefs):
+def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs):
     # Create dictionary for results
     res_dict = {
-        "Layer": [layer] * 10,
         "Model": ['Lasso'] * 10,
         "Fold": folds,
         "R2_score_train": r2s_train,
@@ -116,7 +115,7 @@ def save_results(layer, r2s_train, maes_train, rmses_train, r2s_test, maes_test,
         "rho_score_train": rhos_train,
         "rho_score_test": rhos_test,
 
-        "nun_zero_coefs": num_zero_coefs
+        "nun_zero_coefs": num_nonzero_coefs
     }
 
     # Convert results to DataFrame
@@ -125,7 +124,7 @@ def save_results(layer, r2s_train, maes_train, rmses_train, r2s_test, maes_test,
 
 
 
-def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data, layer=30):
+def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
     '''Run regression on compressed embeddings'''
     meta_data = pd.read_csv(path_meta_data)
 
@@ -145,8 +144,8 @@ def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data, l
             features = features_scaler(features)
 
             # run regression
-            r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_zero_coefs = run_regression(features, target)
-            res = save_results(layer, r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_zero_coefs)
+            r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
+            res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
             res['Compression_methd'] = method
             results = pd.concat([results, res], axis=0)
 
@@ -159,7 +158,6 @@ def main():
     parser = argparse.ArgumentParser(description="Run regression for different target datasets and layers")
     parser.add_argument("-i", "--input", type=str, help="Path to the output file")
     parser.add_argument("-m", "--metadata", type=str, help="Target name in the metadata")
-    parser.add_argument("-l", "--layer", type=int, default=30,  help="Target name in the metadata")
     parser.add_argument("-o", "--output", type=str, help="Path to the output file")
     args = parser.parse_args()
     
@@ -167,10 +165,9 @@ def main():
     path_compressed_embed = args.input
     path_meta_data = args.metadata
     output = args.output
-    layer = args.layer
    
 
-    results = run_regression_on_compressed_files(path_compressed_embed, path_meta_data, layer)
+    results = run_regression_on_compressed_files(path_compressed_embed, path_meta_data)
     results.to_csv(output)
     print(f'Process Finished!')
 
