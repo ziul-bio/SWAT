@@ -152,11 +152,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress embeddings given a transformation method')
     parser.add_argument('-e', '--embed_dir', type=str, help='')
     parser.add_argument('-c', '--compression_method', type=str, help='')
-    parser.add_argument('-l', '--layer', type=int, default=30, help='')
+    #parser.add_argument('-l', '--layer', type=int, default=30, help='')
     
     args = parser.parse_args()
     embed_dir = args.embed_dir
-    layer = args.layer
     compression_method = args.compression_method
+    #layer = args.layer
 
-    main(embed_dir, compression_method, layer)
+    main(embed_dir, compression_method)

@@ -11,6 +11,7 @@ files=('AMIE_PSEAE_Whitehead' 'BRCA1_HUMAN_RING' 'PABP_YEAST_Fields2013_doubles'
 'RL401_YEAST_Bolon2014' 'BLAT_ECOLX_Tenaillon2013' 'MK01_HUMAN_Johannessen' 'RL401_YEAST_Fraser2016' 'BRCA1_HUMAN_BRCT'
 'SUMO1_HUMAN_Roth2017')
 
+
 for file in "${files[@]}"
 do
     echo "Processing embeddings: $file"
