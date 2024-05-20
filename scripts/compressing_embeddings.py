@@ -29,21 +29,21 @@ def pca_transformation(embeddings, num_pca_components=2):
 def kernel_pca_rbf_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using kernel PCA'''
     features = features_scaler(embeddings.T)
-    kpca_rbf = KernelPCA(kernel="rbf", gamma=None, n_components=num_pca_components, n_jobs=16)
+    kpca_rbf = KernelPCA(kernel="rbf", gamma=None, n_components=num_pca_components, n_jobs=48)
     kpca_rbf_features = kpca_rbf.fit_transform(features)
     return kpca_rbf_features.T
 
 def kernel_pca_sigmoid_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using kernel PCA'''
     features = features_scaler(embeddings.T)
-    kpca_sigmoid = KernelPCA(kernel="sigmoid", gamma=None, n_components=num_pca_components, n_jobs=16)
+    kpca_sigmoid = KernelPCA(kernel="sigmoid", gamma=None, n_components=num_pca_components, n_jobs=48)
     kpca_sigmoid_features = kpca_sigmoid.fit_transform(features)
     return kpca_sigmoid_features.T
 
 def tSNE_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using tSNE'''
     features = features_scaler(embeddings.T)
-    tSNE_model = TSNE(n_components=num_pca_components, n_jobs=16, metric='cosine')
+    tSNE_model = TSNE(n_components=num_pca_components, n_jobs=48, metric='cosine')
     tSNE_features = tSNE_model.fit_transform(features)
     return tSNE_features.T
 
