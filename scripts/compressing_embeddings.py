@@ -14,35 +14,40 @@ from sklearn.manifold import TSNE
 # python scripts/compressing_embeddings.py  -e embeddings/sumo1_esm2_150M/ -c mean -l 30
 
 def features_scaler(features):
-    '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features'''
+    '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features.
+    Also, the features are scaled across the rows, i.e., the features are scaled across the sequence length.'''
     scaler = MinMaxScaler(feature_range=(-1, 1))
     scaled_features = scaler.fit_transform(features)
     return pd.DataFrame(scaled_features)
 
 def pca_transformation(embeddings, num_pca_components=2):
-    '''Transform the embeddings using PCA'''
-    features = features_scaler(embeddings.T)
+    '''Transform the embeddings using PCA.
+    First I transposed the embeddings, because PCA works on the features, not on the samples.
+    So my features will be the sequence length and the samples will be the model dimensions.
+    After PCA, I transposed the embeddings back to obtain a single vector of the transformed embeddings,
+    each row will represented by a pca of model dimentsions'''
+    features = features_scaler(embeddings).T
     pca = PCA(num_pca_components)
-    embed_trans = pca.fit_transform(features).T
-    return embed_trans
+    embed_trans = pca.fit_transform(features)
+    return embed_trans.T
 
 def kernel_pca_rbf_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using kernel PCA'''
-    features = features_scaler(embeddings.T)
+    features = features_scaler(embeddings).T
     kpca_rbf = KernelPCA(kernel="rbf", gamma=None, n_components=num_pca_components, n_jobs=48)
     kpca_rbf_features = kpca_rbf.fit_transform(features)
     return kpca_rbf_features.T
 
 def kernel_pca_sigmoid_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using kernel PCA'''
-    features = features_scaler(embeddings.T)
+    features = features_scaler(embeddings).T
     kpca_sigmoid = KernelPCA(kernel="sigmoid", gamma=None, n_components=num_pca_components, n_jobs=48)
     kpca_sigmoid_features = kpca_sigmoid.fit_transform(features)
     return kpca_sigmoid_features.T
 
 def tSNE_transformation(embeddings, num_pca_components=2):
     '''Transform the embeddings using tSNE'''
-    features = features_scaler(embeddings.T)
+    features = features_scaler(embeddings).T
     tSNE_model = TSNE(n_components=num_pca_components, n_jobs=48, metric='cosine')
     tSNE_features = tSNE_model.fit_transform(features)
     return tSNE_features.T
