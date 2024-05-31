@@ -141,6 +141,7 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer=30):
 
 
 def main(embed_dir, compression_method, rep_layer=30):
+    print(f"Compressing embeddings from {embed_dir}")
     compressed_embed = load_per_tok_embeds(embed_dir, compression_method, rep_layer=30)
     l = str(rep_layer)
     c = str(compression_method)

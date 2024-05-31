@@ -14,8 +14,7 @@ directories=('AMIE_PSEAE_Whitehead' 'BRCA1_HUMAN_RING' 'PABP_YEAST_Fields2013_do
 
 
 # Define the list of methods to loop through
-#methods=('mean' 'bos' 'maxPool' 'pca1' 'pca2' 'pca1-2' 'iDCT' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
-methods=('pca1' 'pca2' 'pca1-2' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
+methods=('mean' 'bos' 'maxPool' 'pca1' 'pca2' 'pca1-2' 'iDCT' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
 
 # Loop through each directory
 for dir in "${directories[@]}"

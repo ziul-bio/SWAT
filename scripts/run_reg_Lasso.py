@@ -97,7 +97,7 @@ def run_regression(features, target):
 
 
         # Return the collected results
-        print(f"Results:  fold {kfold}, r2_test: {r2_test}, Num coefs: {num_nonzero_coef}")
+    print(f"Results:  r2_train: {np.mean(r2s_train):.2f}, r2_test: {np.mean(r2s_test):.2f}, Num coefs: {np.mean(num_nonzero_coefs):.2f}")
     return r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs
 
 
@@ -132,7 +132,7 @@ def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
     for file in os.listdir(path_compressed_embeds):
         if file.endswith('.pkl'):
             method = file.split('_')[-1].split('.')[0]
-            print('Results for method:', method)
+            print('\nResults for method:', method)
             file_path = os.path.join(path_compressed_embeds, file)
             embed = pd.read_pickle(file_path)
             embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
