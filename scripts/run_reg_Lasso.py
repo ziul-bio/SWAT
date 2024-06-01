@@ -22,13 +22,6 @@ from scipy.stats import spearmanr
 ###################### Define Functions #######################
 
 
-
-# def load_meta_data(meta_data_path):
-#     '''Load the metadata for the target'''
-#     meta_data = pd.read_csv(meta_data_path)
-#     return meta_data
-
-
 def features_scaler(features):
     '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features'''
     scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -55,8 +48,8 @@ def run_regression(features, target):
         y_train, y_test = target.iloc[train_index], target.iloc[test_index]
 
         # Define and train the regression model
-        #model = Lasso(alpha=0.0005, random_state=42, max_iter=10000, tol=0.001)
-        model = Lasso(alpha=0.001, random_state=42, max_iter=10000, tol=0.001)
+        model = Lasso(alpha=0.0001, random_state=42, max_iter=20000, tol=1e-3)
+        #model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
         model.fit(X_train, y_train)
 
         # get the number of non-zero coefficients
