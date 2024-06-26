@@ -48,8 +48,8 @@ def run_regression(features, target):
         y_train, y_test = target.iloc[train_index], target.iloc[test_index]
 
         # Define and train the regression model
-        model = Lasso(alpha=0.0001, random_state=42, max_iter=20000, tol=1e-3)
-        #model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
+        model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
+        #model = Lasso(alpha=0.005, random_state=42, max_iter=20000, tol=1e-3)
         model.fit(X_train, y_train)
 
         # get the number of non-zero coefficients
@@ -124,6 +124,7 @@ def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
     results = pd.DataFrame()
     for file in os.listdir(path_compressed_embeds):
         if file.endswith('.pkl'):
+        #if file.endswith('.pkl') and 'iDCT2' in file:
             method = file.split('_')[-1].split('.')[0]
             print('\nResults for method:', method)
             file_path = os.path.join(path_compressed_embeds, file)
