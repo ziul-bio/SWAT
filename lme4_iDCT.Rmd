@@ -11,6 +11,7 @@ output: html_document
 library(lme4)
 library(dplyr)
 library(ggplot2)
+library(tidyverse)
 ```
 
 
@@ -59,7 +60,7 @@ glht_results <- summary(glht(model, linfct=c('Compression_methdbos=0',
                               'Compression_methdiDCT2=0',
                               'Compression_methdmaxPool=0',
                               'Compression_methdpca1=0',
-                              'Compression_methdpca1=0',
+                              '`Compression_methdpca1-2`=0',
                               'Compression_methdpca2=0',
                               'Compression_methdrbf1=0',
                               'Compression_methdrbf2=0',
@@ -71,7 +72,7 @@ glht_results
 
 
 ```{r}
-summary(glht(model, linfct=mcp(Compression_methd="Tukey")))
+#summary(glht(model, linfct=mcp(Compression_methd="Tukey")))
 ```
 
 
@@ -104,42 +105,47 @@ library(broom)
 tidy_glht <- tidy(glht_results)
 tidy_glht<- tidy_glht %>% dplyr::filter(contrast != 'Compression_methdiDCT')
 
-tidy_glht$contrast <- gsub("Compression_methd", "", tidy_glht$contrast)
+ci <- tidy(confint(glht_results)) %>% dplyr::select("contrast", "conf.high", "conf.low")
 
-tidy_glht$contrast <- gsub("iDCT2", "iDCT", tidy_glht$contrast)
+res_glht = merge(tidy_glht, ci, by = 'contrast')
+
+
+
+res_glht$contrast <- gsub("Compression_methd", "", res_glht$contrast)
+
+res_glht$contrast <- gsub("iDCT2", "iDCT", res_glht$contrast)
 
 
 # Determine significance levels
-tidy_glht$signif <- ifelse(tidy_glht$adj.p.value < 0.001, "***",
-                 ifelse(tidy_glht$adj.p.value < 0.01, "**",
-                 ifelse(tidy_glht$adj.p.value < 0.05, "*", "")))
+res_glht$signif <- ifelse(res_glht$adj.p.value < 0.001, "***",
+                 ifelse(res_glht$adj.p.value < 0.01, "**",
+                 ifelse(res_glht$adj.p.value < 0.05, "*", "")))
 
-tidy_glht
-
+res_glht
 ```
+
+
 
 
 ```{r}
 # Adding Confidence Intervals
-tidy_glht$Lower_CI <- tidy_glht$estimate - 1.96 * tidy_glht$std.error
-tidy_glht$Upper_CI <- tidy_glht$estimate + 1.96 * tidy_glht$std.error
+#tidy_glht$Lower_CI <- tidy_glht$estimate - 1.96 * tidy_glht$std.error
+#tidy_glht$Upper_CI <- tidy_glht$estimate + 1.96 * tidy_glht$std.error
+
 
 # Plotting
-tidy_glht %>%
-  ggplot(aes(x = contrast, y = estimate)) +
+res_glht %>%
+  ggplot(aes(x = fct_reorder(contrast, -estimate), y = estimate)) +
   geom_point() +
-  geom_errorbar(aes(ymin = Lower_CI, ymax = Upper_CI), width = 0.2) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
   theme_minimal() +
-  labs(title = "95% Confidence Intervals for Hypothesis Tests",
+  labs(title = "95% family-wise confidence level",
        x = "Compression Method",
        y = "Estimate") +
   geom_hline(yintercept = 0, linetype = "dotted", color = "black", size = 1) +
-   geom_text(aes(label = signif), vjust = -2)
+   geom_text(aes(label = signif), vjust = -2.5)
   
 ```
-
-
-
 
 
 
