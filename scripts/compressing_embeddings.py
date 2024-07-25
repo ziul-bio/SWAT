@@ -59,7 +59,8 @@ def iDCTquant(v,n):
 
 #def quant2D(emb, n=32, m=128):
 def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
-    dct = iDCTquant(emb[1:len(emb)-1],n)
+    #dct = iDCTquant(emb[1:len(emb)-1],n)
+    dct = iDCTquant(emb, n)
     ddct = iDCTquant(dct.T,m).T
     ddct = ddct.reshape(n*m) # turn a 2D array into a 1D vector
     return ddct
