@@ -33,6 +33,7 @@ do
         echo 'Running compression for method: ' $method
         # Run the Python script with the current directory and method as arguments
         #time python scripts/compressing_embeddings.py -e "embeddings/${dir}_esm2_150M/" -c $method
-        time python scripts/compressing_embeddings.py -e "embeddings_diverse/${dir}_esm2_150M/" -c $method -l 30
+        #time python scripts/compressing_embeddings.py -e "embeddings_pisces/${dir}_esm2_150M/" -c $method -l 30
+        time python scripts/compressing_embeddings.py -e "embeddings_pisces/${dir}_esm2_150M/" -c $method -l 30
     done
 done

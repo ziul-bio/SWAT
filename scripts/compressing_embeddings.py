@@ -11,7 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 from scipy.fftpack import dct, idct
 from sklearn.manifold import TSNE
 
-# python scripts/compressing_embeddings.py  -e embeddings/sumo1_esm2_150M/ -c mean
+# python scripts/compressing_embeddings.py  -e embeddings/sumo1_esm2_150M/ -c mean -l 30
 
 def features_scaler(features):
     '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features.
@@ -57,8 +57,8 @@ def iDCTquant(v,n):
     trans = idct(f[:,:n], type=2, norm='ortho')
     return trans.T
 
-#def quant2D(emb, n=32, m=128):
-def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
+def quant2D(emb, n=40, m=128):
+#def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
     #dct = iDCTquant(emb[1:len(emb)-1],n)
     dct = iDCTquant(emb, n)
     ddct = iDCTquant(dct.T,m).T
@@ -68,7 +68,6 @@ def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, fina
 
 
 ####### load embeddings functions #######    
-
 def load_per_tok_embeds(embed_dir, compression_method, rep_layer=30):
     embeddings = {}
     count=0
@@ -152,7 +151,7 @@ def main(embed_dir, compression_method, rep_layer=30):
     
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    with open(f'{out_dir}/embed_layer_{l}_{c}2.pkl', 'wb') as f:
+    with open(f'{out_dir}/embed_layer_{l}_{c}.pkl', 'wb') as f:
         pickle.dump(compressed_embed, f)
 
 

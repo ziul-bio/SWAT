@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-files=('beta_lactamase')
-files=('subcellular_localization' 'subcellular_localization_2' 'fluorescence' 'stability' 'solubility')
+files=('beta_lactamase' 'subcellular_localization' 'subcellular_localization_2' 'fluorescence' 'stability' 'solubility')
 
 
 for file in "${files[@]}"
