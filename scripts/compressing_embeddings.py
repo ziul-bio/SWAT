@@ -52,26 +52,47 @@ def tSNE_transformation(embeddings, num_pca_components=2):
     tSNE_features = tSNE_model.fit_transform(features)
     return tSNE_features.T
 
+# def iDCTquant(v,n):
+#     f = dct(v.T, type=2, norm='ortho')
+#     trans = idct(f[:,:n], type=2, norm='ortho')
+#     return trans.T
+
+# def quant2D(emb, n=8, m=80):
+# #def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
+#     #dct = iDCTquant(emb[1:len(emb)-1],n)
+#     dct = iDCTquant(emb, n)
+#     ddct = iDCTquant(dct.T,m).T
+#     ddct = ddct.reshape(n*m) # turn a 2D array into a 1D vector
+#     return ddct
+
+# original implementation at https://github.com/MesihK/prost/blob/master/src/pyprost/prosttools.py
 def iDCTquant(v,n):
     f = dct(v.T, type=2, norm='ortho')
     trans = idct(f[:,:n], type=2, norm='ortho')
+    for i in range(len(trans)):
+        trans[i] = scale(trans[i])
     return trans.T
 
-def quant2D(emb, n=40, m=128):
-#def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
-    #dct = iDCTquant(emb[1:len(emb)-1],n)
-    dct = iDCTquant(emb, n)
+def scale(v):
+    M = np.max(v)
+    m = np.min(v)
+    return (v - m) / float(M - m)
+
+#def quant2D(emb,n=5,m=44): #v01 original implementation
+def quant2D(emb,n=8,m=80):
+    dct = iDCTquant(emb[1:len(emb)-1],n)
     ddct = iDCTquant(dct.T,m).T
     ddct = ddct.reshape(n*m) # turn a 2D array into a 1D vector
-    return ddct
+    return (ddct*127).astype('int8')
     
 
 
 ####### load embeddings functions #######    
-def load_per_tok_embeds(embed_dir, compression_method, rep_layer=30):
+def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
     embeddings = {}
     count=0
     for file in os.listdir(embed_dir):
+        total_files = len(os.listdir(embed_dir))
         if file.endswith('.pt'):
             file_path = os.path.join(embed_dir, file)
             label = file.split('.pt')[0]
@@ -124,29 +145,49 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer=30):
                 embed_trans = kernel_pca_sigmoid_transformation(embed)
                 embeddings[label] = embed_trans[1]
 
-            elif compression_method == 'iDCT':
+            # elif compression_method == 'iDCT': #v02 (n=8, m=80), final dimention 640 same as esm2_150M
+            #     embed = np.array(torch.load(file_path)['representations'][rep_layer])
+            #     embeddings[label] = quant2D(embed, n=8, m=80) 
+
+            elif compression_method == 'iDCT1': #v01 original implementation
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed)
+                embeddings[label] = quant2D(embed, n=5, m=44)
+            
+            elif compression_method == 'iDCT2': #v02 (n=8, m=80), final dimention 640 same as esm2_150M
+                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embeddings[label] = quant2D(embed, n=10, m=64) 
+
+            elif compression_method == 'iDCT3': #v03 (n=10, m=128), final dimention 1280 same as esm2_650M 
+                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embeddings[label] = quant2D(embed, n=10, m=128) 
+            
+            elif compression_method == 'iDCT4': #v04 (n=16, m=320), final dimention 5120 same as esm2_15B
+                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embeddings[label] = quant2D(embed, n=10, m=512)
+
+            elif compression_method == 'iDCT5': #v05 (n=16, m=640), final dimention 5120 same as esm2_15B
+                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embeddings[label] = quant2D(embed, n=10, m=640)
                 
-        
             else:
                 raise ValueError('Invalid compression method')
                 print('Valid compression methods are: mean, bos, max_pool, pca1, pca2, pca1-2, rbf1, rbf2, sigmoid1, sigmoid2')
           
-
         count+=1
         if count % 1000 == 0:
-            print(f'{count} files compressed')
+            print(f'{count}/{total_files} files compressed')
 
     return embeddings
 
 
-def main(embed_dir, compression_method, rep_layer=30):
+
+def main(embed_dir, out_dir, compression_method, rep_layer):
     print(f"Compressing embeddings from {embed_dir}")
-    compressed_embed = load_per_tok_embeds(embed_dir, compression_method, rep_layer=30)
+    compressed_embed = load_per_tok_embeds(embed_dir, compression_method, rep_layer)
     l = str(rep_layer)
     c = str(compression_method)
-    out_dir = f"{embed_dir[:-1]}_compressed"
+    out_dir = str(out_dir)
+    #out_dir = f"{embed_dir[:-1]}_compressed"
     print(f"Saving compressed embeddings to {out_dir}")
     
     if not os.path.exists(out_dir):
@@ -158,12 +199,14 @@ def main(embed_dir, compression_method, rep_layer=30):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress embeddings given a transformation method')
     parser.add_argument('-e', '--embed_dir', type=str, help='')
+    parser.add_argument('-o', '--out_dir', type=str, help='')
     parser.add_argument('-c', '--compression_method', type=str, help='')
     parser.add_argument('-l', '--layer', type=int, default=30, help='')
     
     args = parser.parse_args()
     embed_dir = args.embed_dir
+    out_dir = args.out_dir
     compression_method = args.compression_method
     layer = args.layer
 
-    main(embed_dir, compression_method, layer)
+    main(embed_dir, out_dir, compression_method, layer)
