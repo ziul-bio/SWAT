@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 -u
 
 # To run this script:
-# python scripts/run_cls_all_layers_LogR.py -t target -M esm2_150M -o results/classification/pisces_esm2_15B_All_Layers_target.csv
+# python scripts/run_cls_LogR_CV.py -i embeddings/embeddings_uniprot_EC/uniprot_EC_esm2_150M_compressed -m data/metadata_uniprot_EC/metadata_uniprot_EC_level1.csv -o results/test.csv -nc 5
 
 ################ imports #####################
 import os
@@ -10,18 +10,14 @@ import argparse
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-#from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import KFold
 from sklearn.metrics import confusion_matrix
 
 
 import warnings
 from sklearn.exceptions import UndefinedMetricWarning
-
-import sys
-sys.path.append('scripts/')
-from utils import load_meta_data, features_scaler, load_embed_merged
 
 
 # Suppress only UndefinedMetricWarnings
@@ -31,29 +27,32 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 ###################### Define Functions #######################
 
-def run_Log_regression(features, target, target_name, num_classes):
+def features_scaler(features):
+    '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features'''
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaled_features = scaler.fit_transform(features)
+    return pd.DataFrame(scaled_features)
+
+
+def run_Log_regression_CV(features, target, num_classes):
     # Initialize lists for storing results
     folds = []
     accuracies_train, recalls_train, precisions_train, f1_scores_train = [], [], [], []
     accuracies_test, recalls_test, precisions_test, f1_scores_test = [], [], [], []
+
     
-    # Initialize a dictionary where each key will correspond to a class list
-    ## for index stating from 0
     coefs = {f'class_{i}_non_zero_coef': [] for i in range(0,num_classes)}
     class_accuracies = {f'class_{i}_accuracy': [] for i in range(0,num_classes)}
-
-
+    
     # Define the KFold cross-validator
-    kf = KFold(n_splits=10, shuffle=True, random_state=42)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
     # Loop over the KFold splits
     for kfold, (train_index, test_index) in enumerate(kf.split(features)):
-        # Split the data into training and testing sets
         X_train, X_test = features.iloc[train_index], features.iloc[test_index]
         y_train, y_test = target.iloc[train_index], target.iloc[test_index]
 
-        # Define and train the regression model
-        model = LogisticRegression(penalty='l1', max_iter=1000, solver='liblinear')
+        model = LogisticRegressionCV(solver='saga', penalty='l1', cv=5, max_iter=1000, tol=1e-2)
         model.fit(X_train, y_train)
 
         # Make predictions
@@ -102,16 +101,16 @@ def run_Log_regression(features, target, target_name, num_classes):
         f1_scores_test.append(f1_score_test)
 
 
+        print(f"Results:  Kfold {kfold+1}, ACC_train: {accuracy_train:.3f}, ACC_test: {accuracy_test:.3f}")
         folds.append(kfold + 1)
     # Return the collected results
     return accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies
 
 
-def save_results(layer, accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies):
+def save_results(accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies):
     # Create dictionary for results
     res_dict = {
-        "Layer": [layer] * 10,
-        "Model": ['LogR'] * 10,
+        "Model": ['LogR'] * 5,
         "Fold": folds,
         "Accuracy_train": accuracies_train,
         "Recall_train": recalls_train,
@@ -132,65 +131,59 @@ def save_results(layer, accuracies_train, recalls_train, precisions_train, f1_sc
 
 
 
-def run_Log_regression_all_layers(target_name, model, num_classes):
-    '''Run the regression for all layers, for a given target'''
-    if model == 'esm2_15B':
-        rep_layer = 48
-    elif model == 'esm2_650M':
-        rep_layer = 33
-    elif model == 'esm2_150M' or model == 'esm2_150M_tuned':
-        rep_layer = 30
-    
-  
-    results_df = pd.DataFrame()
-    meta_data =  load_meta_data(target_name)
+def run_LogR_CV_on_compressed_files(path_compressed_embeds, path_meta_data, num_classes):
 
-    for layer in range(0, rep_layer+1):
-        
-        embeds = load_embed_merged(target_name, model, layer)
-        data = meta_data.merge(embeds, how='inner', left_on='ID', right_on='ID')
-        
-        # Define target and features
-        target = data[target_name]
-        
-        # define features
-        features = data.iloc[:, meta_data.shape[1]:]
-        features = features_scaler(features)
-        
-        # run regression
-        accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies= run_Log_regression(features, target, target_name, num_classes)
-        
-        # print results and save them in a DataFrame
-        print(f'Results regression for {target_name} on layer {layer}, Mean Accuracy: {np.mean(accuracies_test):.3f}')
-        
-        res = save_results(layer, accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies)
-        results_df = pd.concat([results_df, res]).reset_index(drop=True)
+    results = pd.DataFrame()
+    meta_data = pd.read_csv(path_meta_data)
 
-    return results_df
+    for file in os.listdir(path_compressed_embeds)[:2]:
+        if file.endswith('.pkl'):
+            method = file.split('_')[-1].split('.')[0]
+            file_path = os.path.join(path_compressed_embeds, file)
+            embed = pd.read_pickle(file_path)
+            embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
+            embed_df.rename(columns={'index': 'ID'}, inplace=True)
+
+            data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
+            target = data['target']
+            features = data.iloc[:, meta_data.shape[1]:]
+            features = features_scaler(features)
+        
+            # run regression
+            print(f'Running regression for {method}')   
+            accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies= run_Log_regression_CV(features, target, num_classes)
+
+            # print results and save them in a DataFrame
+            print(f'Mean Accuracy train: {np.mean(accuracies_train):.3f}, Mean Accuracy Test: {np.mean(accuracies_test):.3f}')
+
+            res = save_results(accuracies_train, recalls_train, precisions_train, f1_scores_train, accuracies_test, recalls_test, precisions_test, f1_scores_test, folds, coefs, class_accuracies)
+            results = pd.concat([results, res]).reset_index(drop=True)
+
+    return results
 
 
 ############################# Run Predictions #############################
 
 def main():
-    parser = argparse.ArgumentParser(description="Run regression for different target datasets and layers")
+    parser = argparse.ArgumentParser(description="Run Log regression")
+    parser.add_argument("-i", "--input", type=str, help="Path to the output file")
+    parser.add_argument("-m", "--metadata", type=str, help="Target name in the metadata")
     parser.add_argument("-o", "--output", type=str, help="Path to the output file")
-    parser.add_argument("-t", "--target", type=str, help="Target name in the metadata")
-    parser.add_argument("-M", "--model", type=str, help="Model name (esm2_15B, esm2_650M, esm2_150M)")
     parser.add_argument("-nc", "--numberClasses", type=int, help="Number of classes in the target dataset")
     args = parser.parse_args()
     
     # Define the target name and output file
-    target_name = args.target
-    output_dir = args.output
-    model = args.model
+    path_compressed_embed = args.input
+    path_meta_data = args.metadata
     num_classes = args.numberClasses
+    output_path = args.output
+
     
     # Load the necessary data and run the regression
-    print(f'Running regression for {target_name}!')
-    results_df = run_Log_regression_all_layers(target_name, model, num_classes)
-    results_df.to_csv(output_dir)
+    results_df = run_LogR_CV_on_compressed_files(path_compressed_embed, path_meta_data, num_classes)
+    results_df.to_csv(output_path)
     
-    print(f'Process Finished for {target_name}')
+    print(f'Process Finished!')
 
    
 if __name__ == "__main__":
