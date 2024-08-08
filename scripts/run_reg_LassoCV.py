@@ -18,7 +18,10 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import spearmanr
 
+# to ignore the convergence warnings and Rho computeation warnings. 
+# Use with caution. Only use when you are sure that the model is working fine.
 import warnings
+warnings.filterwarnings('ignore') 
 from sklearn.exceptions import ConvergenceWarning
 
 

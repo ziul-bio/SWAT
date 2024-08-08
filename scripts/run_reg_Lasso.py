@@ -18,9 +18,11 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import spearmanr
 
+import warnings
+from sklearn.exceptions import ConvergenceWarning
+
 
 ###################### Define Functions #######################
-
 
 def features_scaler(features):
     '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features'''
@@ -48,45 +50,46 @@ def run_regression(features, target):
         y_train, y_test = target.iloc[train_index], target.iloc[test_index]
 
         # Define and train the regression model
-        model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
-        #model = Lasso(alpha=0.005, random_state=42, max_iter=20000, tol=1e-3)
-        model.fit(X_train, y_train)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=ConvergenceWarning)
+            model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
+            model.fit(X_train, y_train)
 
-        # get the number of non-zero coefficients
-        coeficients = model.coef_
-        num_nonzero_coef = np.sum(coeficients != 0)
+            # get the number of non-zero coefficients
+            coeficients = model.coef_
+            num_nonzero_coef = np.sum(coeficients != 0)
 
-        # Make predictions
-        y_pred_train = pd.DataFrame(model.predict(X_train))
-        y_pred_test = pd.DataFrame(model.predict(X_test))
+            # Make predictions
+            y_pred_train = pd.DataFrame(model.predict(X_train))
+            y_pred_test = pd.DataFrame(model.predict(X_test))
 
-        # Evaluate the model
-        r2_train = metrics.r2_score(y_train, y_pred_train)
-        mae_train = metrics.mean_absolute_error(y_train, y_pred_train)
-        mse_train = metrics.mean_squared_error(y_train, y_pred_train)
-        rmse_train = np.sqrt(mse_train)
-        rho_train, p_value_train = spearmanr(y_train, y_pred_train)
+            # Evaluate the model
+            r2_train = metrics.r2_score(y_train, y_pred_train)
+            mae_train = metrics.mean_absolute_error(y_train, y_pred_train)
+            mse_train = metrics.mean_squared_error(y_train, y_pred_train)
+            rmse_train = np.sqrt(mse_train)
+            rho_train, p_value_train = spearmanr(y_train, y_pred_train)
 
-        r2_test = metrics.r2_score(y_test, y_pred_test)
-        mae_test = metrics.mean_absolute_error(y_test, y_pred_test)
-        mse_test = metrics.mean_squared_error(y_test, y_pred_test)
-        rmse_test = np.sqrt(mse_test)
-        rho_test, p_value_test = spearmanr(y_test, y_pred_test)
+            r2_test = metrics.r2_score(y_test, y_pred_test)
+            mae_test = metrics.mean_absolute_error(y_test, y_pred_test)
+            mse_test = metrics.mean_squared_error(y_test, y_pred_test)
+            rmse_test = np.sqrt(mse_test)
+            rho_test, p_value_test = spearmanr(y_test, y_pred_test)
 
-        # Append results
-        r2s_train.append(r2_train)
-        maes_train.append(mae_train)
-        rmses_train.append(rmse_train)
+            # Append results
+            r2s_train.append(r2_train)
+            maes_train.append(mae_train)
+            rmses_train.append(rmse_train)
 
-        r2s_test.append(r2_test)
-        maes_test.append(mae_test)
-        rmses_test.append(rmse_test)
+            r2s_test.append(r2_test)
+            maes_test.append(mae_test)
+            rmses_test.append(rmse_test)
 
-        rhos_train.append(rho_train)
-        rhos_test.append(rho_test)
+            rhos_train.append(rho_train)
+            rhos_test.append(rho_test)
 
-        folds.append(kfold + 1)
-        num_nonzero_coefs.append(num_nonzero_coef)
+            folds.append(kfold + 1)
+            num_nonzero_coefs.append(num_nonzero_coef)
 
 
         # Return the collected results
@@ -107,7 +110,6 @@ def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_
         "RMSE_score_test": rmses_test,
         "rho_score_train": rhos_train,
         "rho_score_test": rhos_test,
-
         "nun_zero_coefs": num_nonzero_coefs
     }
 

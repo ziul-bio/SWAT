@@ -165,7 +165,7 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embeddings[label] = quant2D(embed, n=10, m=512)
 
-            elif compression_method == 'iDCT5': #v05 (n=16, m=640), final dimention 5120 same as esm2_15B
+            elif compression_method == 'iDCT5': #v05 (n=16, m=640), final dimention 6400
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embeddings[label] = quant2D(embed, n=10, m=640)
                 
