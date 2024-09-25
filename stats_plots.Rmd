@@ -1,6 +1,6 @@
 ---
-title: "lme4_iDCT"
-author: "Luiz"
+title: "stats_plots"
+author: "Luiz and Morgan"
 date: "2024-06-08"
 output: html_document
 ---
@@ -14,20 +14,22 @@ library(ggplot2)
 library(tidyverse)
 library(multcomp)
 library(broom)
+library(viridis)
 # for later plotting
 library(cowplot)
 library(scales)
 
-
 ```
 
 
-# Data preprocessing
+
+
+# DMS Data preprocessing
 ```{r}
-data <- read.csv(here("summary_DMS_results_lassoCV_clean.csv"))
+data <- read.csv(here("results/summary_results_DMS_esm2_150M_lassoCV.csv"))
 data <- dplyr::select(data, Dataset, Compression_methd, Fold, R2_score_test, rho_score_test)
 data <- filter(data, Dataset != "HIS7 YEAST")
-
+data <- filter(data, Compression_methd != "pca1-2")
 
 data
 
@@ -41,7 +43,7 @@ data
 
 
 
-# Fiting the lme4 model
+# DMS Fitting the lme4 model
 
 Dependent Variable: The dependent variable (response). Here is R2_score_test.       
 
@@ -84,7 +86,7 @@ glht_results <- summary(glht(model, linfct=c(
                               'Compression_methdiDCT5=0',
                               'Compression_methdmaxPool=0',
                               'Compression_methdpca1=0',
-                              '`Compression_methdpca1-2`=0',
+###                              '`Compression_methdpca1-2`=0',
                               'Compression_methdpca2=0',
                               'Compression_methdrbf1=0',
                               'Compression_methdrbf2=0',
@@ -121,7 +123,7 @@ of residuals).
 
 
 
-# Evaluating individual datasets
+# DMS Evaluating individual datasets
 
 ```{r}
 # Tidy the results
@@ -151,82 +153,83 @@ res_glht
 
 
 
-# Plotting lmer
+# Figure 2A: DMS Plotting lmer
 ```{r}
 #, fig.width=2.5, fig.height=6, out.width = 100%, out.height = 100%
-# Adding Confidence Intervals
-#tidy_glht$Lower_CI <- tidy_glht$estimate - 1.96 * tidy_glht$std.error
-#tidy_glht$Upper_CI <- tidy_glht$estimate + 1.96 * tidy_glht$std.error
-
-
 
 final_plot <- res_glht %>%
   ggplot(aes(y = fct_reorder(contrast, estimate), 
              x = estimate, 
-             color = contrast
+             #color = contrast
              )) +
   geom_point() +
   geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0.2) +
   theme_minimal() +
   labs(
        y = "Compression Method",
-       x = "Difference from the Mean R2", # change to difference from the mean, was "Difference in Means"
+       x = expression(R^2 * " Difference from Mean")
        ) +
-  geom_vline(xintercept = 0, linetype = "dotted", color = '#0072B2', linewidth = 1) +
-  geom_text(aes(label = signif), 
-            #.001
-            nudge_x = .045, 
-            #vjust = -.1, 
-            angle = 0, 
-            size = 3) +
-  scale_color_manual(
-    values = c("mean" = '#0072B2', "maxPool" = '#D55E00', 'pca1-2' = '#710e5c', 'bos' = "#000000", 
-               'iDCT1' = '#000000', 'iDCT2' = '#000000', 'iDCT3' = '#000000', 'iDCT4' = '#000000', 
-               'iDCT5' = '#000000', 'pca1' = '#000000', 'pca2' = '#000000', 
-               'rbf1' = "#000000", 'rbf2' = "#000000", 'sigmoid1' = "#000000", 'sigmoid2' = "#000000"),
-    guide = "none"
-  ) +
-  scale_x_continuous(limit = c(-.25, 0.05), # c(-.13, 0.1)
-                     #breaks = seq(-0.1, 0.1, by = 0.1)
-                     ) + 
-   theme_minimal_vgrid(12, rel_small = 1) +  
+  geom_vline(xintercept = 0, linetype = "dotted", color = '#000000', linewidth = 1) +
+
+  scale_x_continuous(limit = c(-.25, 0.05),
+  ) + 
+  theme_minimal_vgrid(12, rel_small = 1) +  
   theme(
     panel.background = element_rect(fill = "white", colour = "white"),
     plot.background = element_rect(fill = "white", colour = "white"),
     axis.text.x=element_text(size=12),
     axis.text.y=element_text(size=10),
-    #axis.title.x=element_text(size=10),
-    #axis.title.y=element_text(size=10),
+
     panel.border = element_rect(color = "black", 
                                     fill = NA, 
                                     size = .5),
     axis.line = element_blank(),
-      axis.ticks.x = element_line(color = "black"),
-      axis.ticks.y = element_line(color = "black"),
-    plot.margin = margin(43, 15, 140, 0)
-  )
+    axis.ticks.x = element_line(color = "black"),
+    axis.ticks.y = element_line(color = "black"),
+    plot.margin = margin(10,10,0,10)
+  ) +
+  ggtitle("DMS")
 
-ggsave(final_plot, 
-       filename = "lmer_lme4_all_R2.png",
-       path = here("figs"),
-       width = 6,
-       height = 8,
-       dpi=600)
+# ggsave(final_plot, 
+#        filename = "fig2_iDCT_DMS_v12.png",
+#        path = here("figs"),
+#        width = 6,
+#        height = 6,
+#        dpi=600)
 
 
 final_plot
   
 ```
 
-# 150M Scatter
 
+
+# Sup 3A: DMS 150M/650M/15B Boxplot
 
 ```{r}
-methods = c('mean', 'maxPool', 'pca1-2')
+
+data_15B <- read.csv(here('results/summary_DMS_15B_lassoCV.csv'))
+
+data_650M <- read.csv(here('results/summary_DMS_650M_lassoCV.csv'))
+
+methods = c('mean', 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'iDCT5', 'maxPool', 'pca1', 'pca2', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2')
+
+datasets_small = c('BLAT ECOLX 2015', 'PABP doubles', 'TIM THETH', 'PABP singles', 'RL401 2014', 'DLG4 RAT', 'HSP82 YEAST', 'IF1 ECOLI', 'RASH HUMAN', 'RL401 2013')
+
+grouped_150M <- data %>%
+  filter(Compression_methd %in% methods) %>%
+  filter(Dataset %in% datasets_small) %>%
+  group_by(Dataset, Compression_methd) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE)
+  ) %>%
+  ungroup()
 
 
+grouped_150M$param <- '150M'
 
-grouped_data <- data %>%
+grouped_15B <- data_15B %>%
   filter(Compression_methd %in% methods) %>%
   group_by(Dataset, Compression_methd) %>%
   summarise(
@@ -236,135 +239,55 @@ grouped_data <- data %>%
   ungroup()
 
 
-mean_data <- grouped_data %>%
-  filter(Compression_methd == "mean")
-
-ordered_levels <- mean_data %>%
-  arrange(mean_score) %>%
-  pull(Dataset)
-
-grouped_data <- grouped_data %>%
-  mutate(Dataset = factor(Dataset, levels = ordered_levels))
-
-
-
-
-```
-
-```{r}
-#, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%
-custom_colors <- c("mean" = '#0072B2', "maxPool" = '#D55E00', 'pca1-2' = '#710e5c')
-
-
-scatter_150M <- grouped_data %>%
-  ggplot(aes(
-      x = mean_score, 
-      y = Dataset, #fct_reorder(Dataset, mean_score), 
-      color = Compression_methd)) +
-  geom_point(alpha = 1
-    #position = position_dodge(width=1)
-             ) +
-  geom_errorbarh(aes(
-      xmin = mean_score - std_score, 
-      xmax = mean_score + std_score), 
-      height = 0.3,
-      alpha = .7
-      ) +
-      scale_x_continuous(limits = c(0, .8)) + #.2 to .9
-  scale_color_manual(values = custom_colors) +
-  labs(x = "R2", y = "", color = "Compression Method") +
-  
-  theme_minimal_vgrid(12, rel_small = 1)+
-  theme(
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-        legend.position = "top",
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.text.y = element_text(size = 10),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-
-        
-        plot.margin = margin(0, 20, 0, 0)) +
-  guides(color = guide_legend(title.position = "top"))
-
-
-ggsave(scatter_150M, 
-       filename = "scatter_150M_R2.png",
-       path = here("figs"),
-       width = 8,
-       height = 10, #8
-       dpi=600)
-
-
-scatter_150M
-```
-
-
-
-# 15B vs 150M Boxplot (not updated)
-
-```{r}
-
-data_15B <- read.csv(here('summary_15B_clean.csv'))
-
-data_650M <- read.csv(here('summary_650M_DMS.csv'))
-
-methods = c('mean', 'iDCT')
-
-
-grouped_15B <- data_15B %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('rho_score_test'), na.rm = TRUE),
-    std_score = sd(get('rho_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
 grouped_15B$param <- '15B'
 
-grouped_data$param <- '150M'
+
 
 grouped_650M <- data_650M %>%
   filter(Compression_methd %in% methods) %>%
   group_by(Dataset, Compression_methd) %>%
   summarise(
-    mean_score = mean(get('rho_score_test'), na.rm = TRUE),
-    std_score = sd(get('rho_score_test'), na.rm = TRUE)
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE)
   ) %>%
   ungroup()
 
 grouped_650M$param <- '650M'
 
 
-combined_150M_650M_15B <- rbind(grouped_data, grouped_650M, grouped_15B)
+combined_150M_650M_15B <- rbind(grouped_150M, grouped_650M, grouped_15B)
 
 grouped_150M_650M_15B <- combined_150M_650M_15B %>%
   mutate(param = factor(param, levels = c("150M", "650M", "15B")))
-
 
 ```
 
 
 ```{r, fig.width=3, fig.height=3, out.width = 100%, out.height = 100%}
 
-color_dict <- c('mean' = '#0072B2', 'iDCT' = '#D55E00')
+color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
 
 boxplot_15B_150M <- grouped_150M_650M_15B %>%
-  ggplot(aes(x = param, y = mean_score, fill = Compression_methd)) +
-  geom_boxplot() +
-  scale_fill_manual(values = color_dict) +
-  ylim(0.5, 1) +
-  labs(x = "Model", y = "|Spearman ρ|", fill = "Compression Method   ") +
+  ggplot(aes(
+    x = reorder(Compression_methd, -mean_score), 
+    y = mean_score, 
+    fill = param)) +
+  geom_boxplot(alpha = 0.85) +
+  scale_fill_manual(
+    values = color_dict
+    ) +
+  ylim(0, 1) +
+  labs(x = "", 
+       y = expression(R^2), 
+       fill = ""
+       ) +
   theme_minimal_hgrid(12, rel_small = 1)+
   theme(
         legend.position = "top",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
+        panel.background = element_rect(fill = "white", 
+                                        colour = "white"),
+        plot.background = element_rect(fill = "white", 
+                                       colour = "white"),
       
 
         panel.border = element_rect(color = "black", 
@@ -373,224 +296,55 @@ boxplot_15B_150M <- grouped_150M_650M_15B %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(20, 20, 20, 20))
+        plot.margin = margin(0, 10, 0, 10))
         
   
 
-ggsave(boxplot_15B_150M, 
-       filename = "boxplot_R.png",
-       path = here('figs'),
-       width = 6,
-       height = 4,
-       dpi=600)
+# ggsave(boxplot_15B_150M, 
+#        filename = "model_compare_lassoCV.png",
+#        path = here('figs'),
+#        width = 12,
+#        height = 4,
+#        dpi=600)
 
 
 boxplot_15B_150M
 
 ```
 
-
-
-
-
-# protein gym
+# Figure 3A: DMS Viridis Gradient
 ```{r}
-
-protein_gym <- read.csv(here('protein_gym_clean.csv'))
-
-#reshape for combination
-data_wide <- grouped_data %>%
-  dplyr::select(Dataset, Compression_methd, mean_score) %>%
-  pivot_wider(names_from = Compression_methd, values_from = mean_score)
-
-#pull from above 150M data
-protein_combined <- right_join(data_wide, protein_gym, by = "Dataset")
-
-# gotta reshape again..
-protein_long <- protein_combined %>%
-  pivot_longer(cols = -Dataset, names_to = "Model", values_to = "Spearman")
-
-
-protein_long$Model <- factor(protein_long$Model, levels = unique(protein_long$Model))
-
-specific_colors <- c("mean" = '#0072B2', "iDCT" = '#D55E00')
-default_color <- '#d3d3d3'
-
-protein_long$Model <- gsub("\\.\\.\\.", "\\ \\+\\ ", protein_long$Model)
-protein_long$Model <- gsub("\\.", "\\ ", protein_long$Model)
-protein_long$Model <- gsub("\\_", "\\ ", protein_long$Model)
-protein_long$Model <- gsub("One Hot Encodings", "OHE", protein_long$Model)
-protein_long$Model <- gsub("MSA Transformer Embeddings", "MSA Transformer", protein_long$Model)
-protein_long$Model <- gsub("Tranception Embeddings", "Tranception", protein_long$Model)
-protein_long$Model <- gsub("ESM 1v Embeddings", "ESM 1v", protein_long$Model)
-
-unique_models <- unique(protein_long$Model)
-
-
-color_map <- ifelse(unique_models %in% names(specific_colors), 
-                    specific_colors[unique_models], 
-                    default_color)
-
-color_map <- setNames(color_map, unique_models)
-
-
-
-
-
-
-```
-
-
-```{r, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%}
-
-
-protein_boxplot <- protein_long %>%
-  ggplot(aes(y = fct_reorder(Model, Spearman), x = Spearman, fill = Model)) +
-  geom_boxplot() +
-  scale_fill_manual(values = color_map) +
-  theme_minimal_vgrid(12, rel_small = 1)+
-  theme(
-    panel.background = element_rect(fill = "white", colour = "white"),
-    legend.position = "none",
-    plot.background = element_rect(fill = "white", colour = "white"),
-    panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-    axis.line = element_blank(),
-    axis.ticks.x = element_line(color = "black"),
-    axis.ticks.y = element_line(color = "black"),
-    #panel.grid.major = element_blank(),
-    #panel.grid.minor = element_blank()
-    plot.margin = margin(20, 20, 20, 0)
-    ) +
-  labs(y = " ", x = "|Spearman ρ|")
-
-
-ggsave(protein_boxplot, 
-       filename = "protein_gym_R.png",
-       path = here("figs"),
-       width = 6,
-       height = 4,
-       dpi=600)
-
-
-
-protein_boxplot
-
-```
-
-
-# rank
-```{r}
-
-rank_df = read_csv(here('summary_benchmarks_rank.csv'))
-
-specific_colors <- c("ESM2 150M - MEAN" = '#0072B2', "ESM2 150M - iDCT" = '#D55E00')
-default_color <- '#d3d3d3'
-
-unique_models <- unique(rank_df$Method)
-
-
-color_map <- ifelse(unique_models %in% names(specific_colors), 
-                    specific_colors[unique_models], 
-                    default_color)
-
-color_map <- setNames(color_map, unique_models)
-```
-
-```{r}
-
-ranked_boxplot <- rank_df %>%
-  ggplot(aes(y = fct_reorder(Method, Rank, .desc = TRUE), x = Rank, fill = Method)) +
-  geom_boxplot() +
-  scale_fill_manual(values = color_map) +
-  theme_minimal_vgrid(12, rel_small = 1)+
-  theme(
-    panel.background = element_rect(fill = "white", colour = "white"),
-    legend.position = "none",
-    plot.background = element_rect(fill = "white", colour = "white"),
-    panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-    axis.line = element_blank(),
-    axis.ticks.x = element_line(color = "black"),
-    axis.ticks.y = element_line(color = "black"),
-    #panel.grid.major = element_blank(),
-    #panel.grid.minor = element_blank()
-    plot.margin = margin(20, 20, 20, 0)
-    ) +
-  labs(y = " ", x = "Rank")
-
-
-ggsave(ranked_boxplot, 
-       filename = "ranked_boxplot.png",
-       path = here('figs'),
-       width = 8,
-       height = 6,
-       dpi=600)
-
-
-
-ranked_boxplot
-
-```
-
-
-
-
-
-
-
-# torch summary
-```{r}
-torch_data <- read.csv(here('summary_benchmarks.csv'))
-
-# plan
-# group data into respective categories (DMS, diverse, mid)
-# make 3 individual plots based on meowing
-# use cowplot to stitch together
-
-# exclude solutbility for now since we don't know what dataset it belongs to also it is classification
-
-
-torch_dms <- filter(torch_data, (Dataset %in% c('beta_lactamase', 'fluorescence')))
-torch_dms$Dataset <- gsub("beta_lactamase", "B-Lac", torch_dms$Dataset)
-torch_dms$Dataset <- gsub("fluorescence", "Fluorescence", torch_dms$Dataset)
-
-torch_mid <- filter(torch_data, (Dataset %in% c('subcellular_localization', 'subcellular_localization_2')))
-torch_mid$accuracy <- torch_mid$accuracy * 100
-torch_mid$Dataset <- gsub("subcellular_localization", "Cell-Loc", torch_mid$Dataset)
-torch_mid$Dataset <- gsub("subcellular_localization_2", "`Cell-Loc2`", torch_mid$Dataset)
-
-
-torch_diverse <- filter(torch_data, (Dataset %in% c('solubility')))
-torch_diverse$accuracy <- torch_diverse$accuracy * 100
-
-
-torch_stable <- filter(torch_data, (Dataset %in% c('stability')))
-
-
-
-```
-
-
-```{r}
-
-color_dict <- c('mean' = '#0072B2', 'iDCT' = '#D55E00')
-
-scaleFUN <- function(x) sprintf("%.2f", x)
-
-
-torch_dms_box <- torch_dms %>%
-  ggplot(aes(x = Compression_methd, y = rho, fill = Compression_methd)) +
-  geom_boxplot(size = 0.25) +
-  scale_y_continuous(labels=label_number(accuracy = 0.01)) + 
-  scale_fill_manual(values = color_dict) +
-  #ylim(.4, .7) +
-  labs(x = "DMS", y = "|Spearman ρ|", fill = "Compression Method") +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
+# relies on df built in "DMS 150M/650M/15B Boxplot" chunk
+
+gradient_plot <- grouped_150M_650M_15B %>%
+  filter(Compression_methd %in% c('mean')) %>%
+  ggplot(aes(
+    x = param, 
+    y = mean_score, 
+    group = Dataset, 
+    color = mean_score
+    )) +
+    geom_line() +
+    geom_point(shape = 21, 
+               size = 2,  
+               color = "black", 
+               aes(fill = mean_score), 
+               stroke = .2
+               ) + 
+    scale_color_viridis_c(begin = .2, 
+                          end =.8, 
+                          direction=-1) +
+    scale_fill_viridis_c(begin = .2, 
+                         end = .8, 
+                         direction = -1, guide = "none") +
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
         panel.background = element_rect(fill = "white", colour = "white"),
         plot.background = element_rect(fill = "white", colour = "white"),
       
@@ -601,130 +355,206 @@ torch_dms_box <- torch_dms %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 10, 10)
-        ) 
-        
+        plot.margin = margin(10, 10, 0, 10))
   
-torch_mid_box <- torch_mid %>%
-  ggplot(aes(x = Compression_methd, y = accuracy, fill = Compression_methd)) +
-  geom_boxplot(size = 0.25) +
-  scale_fill_manual(values = color_dict) +
-  ylim(70, 90) +
-  labs(x = "Homologous", y = "Accuracy %", fill = "Compression Method") +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 10, 10)
-        )
-
-torch_diverse_box <- torch_diverse %>%
-  ggplot(aes(x = Compression_methd, y = accuracy, fill = Compression_methd)) +
-  geom_boxplot(size = 0.25) +
-  scale_fill_manual(values = color_dict) +
-  ylim(62, 70) +
-  labs(x = "Diverse", y = "Accuracy %", fill = "Compression Method") +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 10, 10)
-        )
 
 
-torch_stable_box <- torch_stable %>%
-  ggplot(aes(x = Compression_methd, y = rho, fill = Compression_methd)) +
-  geom_boxplot(size = 0.25) +
-  scale_fill_manual(values = color_dict) +
-  ylim(.65, .8) +
-  labs(x = "Mix", y = "|Spearman ρ|", fill = "Compression Method") +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-      
+# ggsave(gradient_plot, 
+#        filename = "gradient_plot.png",
+#        path = here('figs'),
+#        width = 6,
+#        height = 4,
+#        dpi=600)      
 
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 10, 10)
-        )
+gradient_plot
 
 ```
-
-
+# Figure 5
 ```{r}
-torch_dms_box
+# Fig 5
+
+data_with_size <- read.csv(here('results/lassoCV_DMS/summary_all_DMS_results_LassoCV_mean.csv'))
+
+data_with_size <- data_with_size %>%
+  group_by(Dataset, param) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+    datse_size = median(get('datse_size'))
+  ) %>%
+  ungroup()
+
+data_with_size$param <- factor(data_with_size$param, levels = c("150M", "650M", "15B"))
+
 
 ```
-
 
 ```{r}
 
-custom_legend <- ggplot() +
-  annotate("text", x = 1, y = 2, label = "Compression Method", size = 5, hjust = 0) +
-  geom_point(aes(x = 1.5, y = 2.5), color = "#D55E00", size = 5) +
-  annotate("text", x = 1.6, y = 2.5, label = "iDCT", hjust = 0, vjust = 0.5, size = 4) +
-  geom_point(aes(x = 1.5, y = 1.5), color = "#0072B2", size = 5) +
-  annotate("text", x = 1.6, y = 1.5, label = "mean", hjust = 0, vjust = 0.5, size = 4) +
-  xlim(0.8, 2) + ylim(1, 4) + 
-  theme_void() +
-  theme(plot.margin = margin(0, 0, 0, 5),
+
+    #annotate("text", 
+             #x = 1e3,
+             #y = max(data_with_size$mean_score),  # Adjust to place it well
+             #label = paste0("Slope: ", round(slope, 2), "\nR²: ", round(r_squared, 2)), 
+             #hjust = 0,
+             #color = "black"
+  #)
+
+
+model_150M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "150M")
+slope_150M <- coef(model_150M)[2]
+r_squared_150M <- summary(model_150M)$r.squared
+
+label_150M <- paste("Slope:", round(slope_150M, 2), "\n", paste0("R^2: ", round(r_squared_150M, 2)))
+#paste0("~R^{2} == "
+
+
+model_650M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "650M")
+slope_650M <- coef(model_650M)[2]
+r_squared_650M <- summary(model_650M)$r.squared
+
+label_650M <- paste("Slope:", round(slope_650M, 2), "\n", paste("R^2:", round(r_squared_650M, 2)))
+
+
+model_15B <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "15B")
+slope_15B <- coef(model_15B)[2]
+r_squared_15B <- summary(model_15B)$r.squared
+
+label_15B <- paste("Slope:", round(slope_15B, 2), "\n", paste("R^2:", round(r_squared_15B, 2)))
+
+
+data_text <- data.frame(
+  labels = c(label_150M, label_650M, label_15B),
+  param = c("150M", "650M", "15B"),
+  x = c(2050, 2050, 2050),
+  y = c(1.13, 1.13, 1.13)
+)
+
+data_text$param <- factor(data_text$param, levels = c("150M", "650M", "15B"))
+
+print(data_text)
+```
+
+
+
+```{r}
+
+# kept showing 10^3.44446447 etc, idk how else to remove them
+# if the power is a whole number then show the label, else ""
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
+  }
+
+
+plot_param <- data_with_size %>%
+    ggplot(aes(
+      x = datse_size, 
+      y = mean_score,
+      #color = '#0072B2'
+      )) +
+    scale_x_continuous(limits = c(1000, NA),
+                       trans = scales::log_trans(),
+                       breaks = scales::log_breaks(),
+                        
+                       labels = label_function
+                         #trans_format("log10", math_format(10^.x))
+                       ) +
+    #scale_y_continuous(limits = c(0, 0.8))+
+      geom_smooth(method = 'lm', 
+                formula = y ~ log(x), 
+                color = "#D55E00", 
+                se = TRUE, 
+                fill = "#D55E00", 
+                #fullrange = TRUE
+                ) +
+    geom_point(alpha = 1,
+               color = '#0072B2'
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .7,
+      color = '#0072B2'
+      )+
+  
+
+  #annotate(geom='text', x=c(200), y=c(.8), label=c('Down'), size=50) +
+  #annotate(geom='text', x=c(-7,7), y=c(270, 270), label=c(down, up), size=5) +
+    
+    labs(x = "Dataset Size", 
+         y = expression(paste("Predicted ", R^2)),
+         #title = param_vec[1]
+         #title = cat("ESM2", param),
+         #color = ""
+         ) +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
         panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),)
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+        geom_text(
+        data    = data_text,
+        mapping = aes(x = x, y = y, label = labels),
+        #parse=TRUE
+        )
+    
 
 
 
-torch_2x2 <- plot_grid(torch_dms_box + facet_grid(. ~ Dataset), torch_mid_box + facet_grid(. ~ Dataset),  torch_stable_box, torch_diverse_box)
-
-torch_all <- plot_grid(custom_legend, torch_2x2, ncol = 1, rel_heights = c(0.1, 1))
 
 
-ggsave(torch_all, 
-       filename = "torch_all.png",
-       path = here("figs"),
-       width = 7,
-       height = 8,
-       dpi=600)
+plot_param <- plot_param + facet_grid(cols = vars(param))
+#plot_param <- plot_param + annotate("text", label = "Test", size = 4, x = 1500, y = 1.2)  
 
-torch_all
+
+
+plot_param 
+
+# ggsave(plot_param, 
+#        filename = "plot_param.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 3,
+#        dpi=600)
 
 
 
 ```
+
+
+
+
+
+
+
+
+
 
 
 
 
 # Pisces Data Preprocessing
 ```{r}
-pisces_data <- read.csv(here('summary_150M_pisces_results_lassoCV.csv'))
+pisces_data <- read.csv(here('results/summary_results_pisces_esm2_150M_lassoCV.csv'))
 #'Pisces_summary.csv'
 pisces_data <- dplyr::select(pisces_data, c('Dataset', 'Compression_methd', 'Fold', 'R2_score_test', 'rho_score_test'))
 
 #pisces_data <- filter(pisces_data, !Dataset %in% c('W freq', 'M freq','V freq', 'Y freq', 'D freq','C freq', 'F freq'))
+pisces_data <- filter(pisces_data, !Compression_methd %in% c('pca1-2'))
+
 pisces_data
 
 # Convert categorical variables to factors and releveling the mean to be the reference group
@@ -751,7 +581,7 @@ pisces_glht_results <- summary(glht(pisces_model, linfct=c('Compression_methdbos
                              'Compression_methdiDCT5=0',
                               'Compression_methdmaxPool=0',
                               'Compression_methdpca1=0',
-                              '`Compression_methdpca1-2`=0',
+###                              '`Compression_methdpca1-2`=0',
                               'Compression_methdpca2=0',
                               'Compression_methdrbf1=0',
                               'Compression_methdrbf2=0',
@@ -786,31 +616,29 @@ pisces_res_glht
 ```
 
 
-# pisces lmer
+# Figure 2B: Pisces lmer
 ```{r, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%}
 
 pisces_plot <- pisces_res_glht %>%
-  ggplot(aes(y = fct_reorder(contrast, estimate), x = estimate, color = contrast)) +
+  ggplot(aes(
+      y = fct_reorder(contrast, estimate), 
+      x = estimate, 
+      #color = contrast
+      )) +
   geom_point() +
-  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0.2) +
+  geom_errorbar(aes(xmin = conf.low, 
+                    xmax = conf.high), 
+                width = 0.2) +
   theme_minimal() +
   labs(
        y = "Compression Method",
-       x = "Difference in Means R2",
+       x = expression(R^2 * " Difference from Mean"),
        ) +
-  geom_vline(xintercept = 0, linetype = "dotted", color = '#0072B2', linewidth = 1) +
-  geom_text(aes(label = signif), 
-            nudge_x = .1, 
-            #vjust = 3, 
-            angle = 0, 
-            size = 3) +
-  scale_color_manual(
-    values = c("mean" = '#0072B2', "maxPool" = '#D55E00', 'pca1-2' = "#000000", 'bos' = '#009E10', 
-               'iDCT1' = '#000000', 'iDCT2' = '#000000', 'iDCT3' = '#000000', 'iDCT4' = '#000000', 
-               'iDCT5' = '#000000', 'pca1' = '#000000', 'pca2' = '#000000', 
-               'rbf1' = "#000000", 'rbf2' = "#000000", 'sigmoid1' = "#000000", 'sigmoid2' = "#000000"),
-    guide = "none"
-  ) +
+  geom_vline(xintercept = 0, 
+             linetype = "dotted", 
+             color = '#000000', 
+             linewidth = 1) +
+
   scale_x_continuous(limit = c(-.85, 0),
                      breaks = seq(-0.8, 0, by = 0.4)
                      ) + 
@@ -819,137 +647,48 @@ pisces_plot <- pisces_res_glht %>%
     panel.background = element_rect(fill = "white", colour = "white"),
     plot.background = element_rect(fill = "white", colour = "white"),
     axis.text.y=element_text(size=10),
-    #axis.title.x=element_text(size=10),
-    #axis.title.y=element_text(size=10),
+
     panel.border = element_rect(color = "black", 
                                     fill = NA, 
                                     size = .5),
     axis.line = element_blank(),
-      axis.ticks.x = element_line(color = "black"),
-      axis.ticks.y = element_line(color = "black"),
-    plot.margin = margin(43, 15, 140, 0)
-  )
-
-ggsave(pisces_plot, 
-       filename = "pisces_lme4_lassoCV.png",
-       path = here("figs"),
-       width = 6,
-       height = 8,
-       dpi=600)
-
+    axis.ticks.x = element_line(color = "black"),
+    axis.ticks.y = element_line(color = "black"),
+    
+    plot.margin = margin(10,10,0,10)
+  ) +
+  ggtitle("Pisces")
 
 pisces_plot
+
+# ggsave(pisces_plot, 
+#        filename = "fig3_iDCT_pisces_v04.png",
+#        path = here("figs"),
+#        width = 6,
+#        height = 6,
+#        dpi=600)
+
+
+
+
   
 ```
 
 
-# scatter plot pisces
-```{r}
-methods = c('mean', 'bos', 'maxPool')
-
-
-grouped_pisces <- pisces_data %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-```
-```{r}
-
-
-#GQSPHT
-exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
-
-# order:
-#new_order = c('F freq', 'M freq', 'C freq', 'D freq', 'T freq', 'Y freq', 'H freq', 'P freq', 'V freq', 'S freq', 'Q freq', 'G freq', 'Instability index', 'I freq', 'N freq', 'L freq', 'E freq', 'R freq', 'A freq', 'K #freq', 'Isoelectric point', 'SS E', 'Charge', 'SS H', 'Hydrophobicity', 'W freq')
-
-
-mean_data <- grouped_pisces %>%
-  filter(Compression_methd == "mean")
-
-ordered_levels <- mean_data %>%
-  arrange(mean_score) %>%
-  pull(Dataset)
-
-grouped_pisces <- grouped_pisces %>%
-  mutate(Dataset = factor(Dataset, levels = ordered_levels))
 
 
 
-
-
-
-```
-
-```{r, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%}
-
-# ggplot(aes(y = fct_reorder(contrast, estimate), x = estimate, color = signif))
-
-custom_colors <- c("mean" = '#0072B2', "maxPool" = '#D55E00', 'bos' = '#009E10')
-
-
-
-pisces_scatter <- grouped_pisces %>%
-  ggplot(aes(
-      x = mean_score, 
-      y = Dataset, # fct_reorder(Dataset, mean_score), 
-      color = Compression_methd)) +
-  geom_point() +
-  geom_errorbarh(aes(
-      xmin = mean_score - std_score, 
-      xmax = mean_score + std_score), 
-      height = 0.2,
-      alpha = .7) +
-      scale_x_continuous(limits = c(.35, 1)) +
-  scale_color_manual(values = custom_colors) +
-  labs(x = "R2", y = "", color = "Compression Method") +
-  theme_minimal_vgrid(12, rel_small = 1)+
-  theme(
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-        legend.position = "top",
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        
-        axis.text.y = element_text(size = 10),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-
-        plot.margin = margin(0, 20, 0, 0)) +
-  guides(color = guide_legend(title.position = "top"))
-
-
-
-ggsave(pisces_scatter, 
-       filename = "pisces_scatter_R_lassoCV.png",
-       path = here('figs'),
-       width = 8,
-       height = 8,
-       dpi=600)
-
-
-pisces_scatter
-```
-
-
-# pisces 15B v 150M boxplot (not updated)
+# Sup 3B: Pisces 150M/650M/15B boxplot 
 ```{r}
 
 #exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
 
-pisces_15B <- read.csv(here('summary_15B_pisces_results_lassoCV.csv'))
+pisces_15B <- read.csv(here('results/summary_results_pisces_esm2_15B_lassoCV.csv'))
 
-pisces_650M <- read.csv(here('summary_650M_pisces_results_lassoCV.csv'))
+pisces_650M <- read.csv(here('results/summary_results_pisces_esm2_650M_lassoCV.csv'))
 
 
-methods = c('mean', 'bos', 'maxPool', 'iDCT5')
-
+methods = c('mean', 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'iDCT5', 'maxPool', 'pca1', 'pca2', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2')
 
 grouped_pisces <- pisces_data %>%
   filter(Compression_methd %in% methods) %>%
@@ -991,8 +730,6 @@ pic_150M_650M_15B <- rbind(grouped_pisces, grouped_pisces_650M, grouped_pisces_1
 pisces_150M_650M_15B <- pic_150M_650M_15B %>%
   mutate(param = factor(param, levels = c("150M", "650M", "15B")))
 
-#pisces_150M_650M_15B <- filter(pisces_150M_650M_15B, !(Dataset %in% exclude_datasets))
-
 
 ```
 
@@ -1000,18 +737,181 @@ pisces_150M_650M_15B <- pic_150M_650M_15B %>%
 
 ```{r}
 
-#color_dict <- c('mean' = '#0072B2', 'iDCT' = '#D55E00')
+color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
 
 pisces_boxplot <- pisces_150M_650M_15B %>%
-  ggplot(aes(x = param, y = mean_score, fill = Compression_methd)) +
-  geom_boxplot() +
-  #scale_fill_manual(values = color_dict) +
-  ylim(0.5, 1) +
-  labs(x = "Model", y = "R2", fill = "Compression Method   ") +
+ ggplot(aes(
+    x = reorder(Compression_methd, -mean_score), 
+    y = mean_score, 
+    fill = param)) +
+  geom_boxplot(alpha = 0.85) +
+  scale_fill_manual(values = color_dict) +
+  ylim(0, 1) +
+  labs(x = "Compression Method", y = expression(R^2), fill = "Model Size") +
   theme_minimal_hgrid(12, rel_small = 1)+
   theme(
-        legend.position = "top",
+        legend.position = "none",
 
+        panel.background = element_rect(fill = "white", 
+                                        colour = "white"),
+        plot.background = element_rect(fill = "white", 
+                                       colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+        
+  
+
+# ggsave(pisces_boxplot, 
+#        filename = "pisces_models_lassoCV.png",
+#        path = here("figs"),
+#        width = 12,
+#        height = 4,
+#        dpi=600)
+
+
+pisces_boxplot
+
+```
+
+
+# Figure 3B: Pisces Viridis Gradient
+```{r}
+# relies on df built in "pisces 150M/650M/15B boxplot" chunk
+
+gradient_pisces <- pisces_150M_650M_15B %>%
+  filter(Compression_methd %in% c('mean')) %>%
+  ggplot(aes(
+    x = param, 
+    y = mean_score, 
+    group = Dataset, 
+    color = mean_score
+    )) +
+    geom_line() +
+    geom_point(shape = 21, 
+               size = 2,  
+               color = "black", 
+               aes(fill = mean_score), 
+               stroke = .2
+               ) + 
+    scale_color_viridis_c(begin = .2, 
+                          end =.8, 
+                          direction=-1
+                          ) +
+    scale_fill_viridis_c(begin = .2, 
+                         end = .8, 
+                         direction = -1, 
+                         guide = "none"
+                         ) +
+    labs(x = "Model Size", 
+         y = expression(R^2), 
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", 
+                                        colour = "white"),
+        plot.background = element_rect(fill = "white", 
+                                       colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+
+
+#ggsave(gradient_pisces, 
+       # filename = "gradient_pisces.png",
+       # path = here('figs'),
+       # width = 6,
+       # height = 4,
+       # dpi=600)      
+
+gradient_pisces
+
+
+```
+
+
+
+
+
+
+# Figure 4: His7 sampling (DMS)
+```{r}
+his7_sampling <- read.csv(here('results/HIS7_YEAST_Kondrashov2017_sampling_esm2_all.csv'))
+
+```
+
+```{r}
+grouped_his7_sampling <- his7_sampling %>%
+  group_by(Sample_size, Model) %>%
+  summarise(
+    mean_R2_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_R2_score = sd(get('R2_score_test'), na.rm = TRUE),
+    mean_coeff_score = mean(get('nun_zero_coefs'), na.rm = FALSE),
+    std_coeff_score = sd(get('nun_zero_coefs'), na.rm = FALSE)
+    
+  ) %>%
+  ungroup()
+
+grouped_his7_sampling <- grouped_his7_sampling %>%
+  mutate(Model = factor(Model, levels = c("150M", "650M", "15B")))
+
+```
+
+
+```{r}
+
+color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
+#color_dict <- c("150M" = '#7C9ACB','650M' = '#375D8F', "15B" = '#254369')
+#08519C
+#4292C6
+#9ECAE1
+
+
+his7_sample_R2_plot <- grouped_his7_sampling %>%
+  ggplot(aes(
+      x = Sample_size, 
+      y = mean_R2_score,
+      color = Model
+      )) +
+  scale_x_continuous(limits = c(92, NA),trans = scales::log_trans(),
+                     breaks = scales::log_breaks(),
+                     labels = trans_format("log10", math_format(10^.x))
+                       ) +
+  scale_y_continuous(limits = c(-.3, NA)) +
+  geom_errorbar(aes(
+      ymin = mean_R2_score - std_R2_score, 
+      ymax = mean_R2_score + std_R2_score), 
+      width = 0.1,
+      alpha = 1,
+      position = position_dodge(width = .2)
+      ) +
+  geom_line(position = position_dodge(width = 0.2))+
+  geom_point(position = position_dodge(width = 0.2))+
+  scale_color_manual(
+    values = color_dict
+    ) +
+  
+  labs(x= "", 
+    y = expression(R^2), fill = ""
+       ) +
+  theme_minimal_grid(12, rel_small = 1)+
+  theme(
+        legend.position = "top",
         panel.background = element_rect(fill = "white", colour = "white"),
         plot.background = element_rect(fill = "white", colour = "white"),
       
@@ -1022,156 +922,167 @@ pisces_boxplot <- pisces_150M_650M_15B %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(20, 20, 20, 20))
+        plot.margin = margin(0, 10, 0, 10))
         
   
+  
 
-ggsave(pisces_boxplot, 
-       filename = "pisces_box_R_lassoCV.png",
-       path = here("figs"),
-       width = 6,
-       height = 4,
-       dpi=600)
-
-
-pisces_boxplot
-
-```
-
-
-
-
-
-
-# cowplot
-```{r}
-# cowplot for pisces 150M data
-
-pisces_double <- plot_grid(pisces_scatter,
-                  pisces_plot,
-                  labels = c('A', 'B'), 
-                  label_size = 12, 
-                  rel_widths = c(3.5, 2)
-                  )
-
-
-ggsave(pisces_double, 
-       filename = "pisces_double.png",
-       path = here("figs"),
-       width = 10,
-       height = 10,
-       dpi=600)
-pisces_double
-
-```
-
-
-```{r}
-# cowplot for DMS 150M data
-
-double_plot <- plot_grid(scatter_150M,
-                  final_plot,
-                  labels = c('A', 'B'), 
-                  label_size = 12, 
-                  rel_widths = c(3.5, 2)
-                  )
-
-
-ggsave(double_plot, 
-       filename = "double.png",
-       path = here("figs"),
-       width = 10,
-       height = 10,
-       dpi=600)
-double_plot
-
-```
-
-
-# supplementary figs (not updated)
-
-``` {r}
-
-methods_all <- c("mean", "bos", "iDCT", "maxPool", "pca1", "pca1-2", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
-
-
-all_grouped_data <- data %>%
-  filter(Compression_methd %in% methods_all) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('rho_score_test'), na.rm = TRUE),
-    std_score = sd(get('rho_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-dataset_list <- split(all_grouped_data, all_grouped_data$Dataset)
-
-```
-
-```{r}
-create_plot <- function(all_grouped_data) {
-  ggplot(all_grouped_data, aes(y = Compression_methd, x = mean_score, fill = Compression_methd)) +
-    geom_bar(stat = "identity", position = position_dodge()) +
-    geom_errorbar(aes(xmin = mean_score - std_score, xmax = mean_score + std_score), 
-                  width = 0.2, position = position_dodge(0.7)) +
-    labs(title = unique(all_grouped_data$Dataset),
-         #y = "Compression Method",
-         x = "|Spearman ρ|") +
-    scale_x_continuous(limits = c(0, 1)) +
-    theme_minimal_vgrid() +
-    theme(
-    panel.background = element_rect(fill = "white", colour = "white"),
-    legend.position = "none",
-    plot.background = element_rect(fill = "white", colour = "white"),
-    panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-    axis.line = element_blank(),
-    axis.ticks.x = element_line(color = "black"),
-    axis.ticks.y = element_line(color = "black"),
-    plot.margin = margin(0, 15, 15, 15))
-}
-
-
-plots <- lapply(dataset_list, create_plot)
-```
-
-
-
-```{r}
-#mega_plot <- plot_grid(plotlist = plots, align = 'v', ncol = 4)
-
-#ggsave(mega_plot, 
-#       filename = "mega_plot.png",
+#ggsave(his7_sample_R2_plot, 
+#       filename = "his7_sample_R2_plot.png",
 #       path = here("figs"),
-#       width = 20,
-#       height = 40,
+#       width = 8,
+#       height = 5,
 #       dpi=600)
 
 
-#print(mega_plot)
+his7_sample_R2_plot
 
 ```
 
 ```{r}
-multi_mod_plot <- plot_grid(boxplot_15B_150M, 
+
+his7_sample_coeff_plot <- grouped_his7_sampling %>%
+  ggplot(aes(
+      x = Sample_size, 
+      y = mean_coeff_score,
+      color = Model
+      )) +
+  scale_x_continuous(limits = c(92, NA), trans = scales::log_trans(),
+                     breaks = scales::log_breaks(),
+                     labels = trans_format("log10", math_format(10^.x))
+                       ) +
+  #scale_y_continuous(limits = c(NA, 1500)) +
+  geom_errorbar(aes(
+      ymin = mean_coeff_score - std_coeff_score, 
+      ymax = mean_coeff_score + std_coeff_score), 
+      width = 0.1,
+      alpha = 1,
+      position = position_dodge(width = .2)
+      ) +
+  geom_line(position = position_dodge(width = 0.2))+
+  geom_point(position = position_dodge(width = 0.2))+
+  scale_color_manual(
+    values = color_dict
+    ) +
+  
+  labs(x= "Sample Size", 
+    y = "Number of Features", fill = ""
+       ) +
+  theme_minimal_grid(12, rel_small = 1)+
+  theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(0, 10, 0, 10))
+        
+  
+  
+
+#ggsave(his7_sample_coeff_plot, 
+#       filename = "his7_sample_coeff_plot.png",
+#       path = here("figs"),
+#       width = 8,
+#       height = 5,
+#       dpi=600)
+
+
+his7_sample_coeff_plot
+
+```
+
+```{r}
+his7_sample_plot <- plot_grid(his7_sample_R2_plot, 
+                        his7_sample_coeff_plot,
+                        labels = c('A', 'B'), 
+                        label_size = 12, 
+                        rel_heights = c(1.1, 1),
+                        ncol = 1)
+
+#ggsave(his7_sample_plot, 
+#       filename = "his7_sample_plot.png",
+#       path = here("figs"),
+#       width = 7,
+#       height = 6,
+#       dpi=600)
+
+his7_sample_plot
+
+```
+
+
+
+
+#### Assembling Parts with Cowplot
+# Figure 2 Assembly
+```{r}
+# cowplot for DMS 150M data
+
+double_plot <- plot_grid(final_plot,
+                  pisces_plot,
+                  labels = c('A', 'B'), 
+                  label_size = 12, 
+                  rel_widths = c(1, 1)
+                  )
+
+
+#ggsave(double_plot, 
+#       filename = "double_lmer.png",
+#       path = here("figs"),
+#       width = 8,
+#       height = 4,
+#       dpi=600)
+double_plot
+
+```
+# Figure 3 Assembly
+```{r}
+gradient_plots <- plot_grid(gradient_plot, 
+                        gradient_pisces,
+                        labels = c('A', 'B'), 
+                        label_size = 12, 
+                        rel_heights = c(1, 1),
+                        ncol = 1)
+
+#ggsave(gradient_plots, 
+#       filename = "gradient_plots.png",
+#       path = here("figs"),
+#       width = 6,
+#       height = 8,
+#       dpi=600)
+
+gradient_plots
+
+```
+
+
+# supplementary figs 
+# Supplementary Figure 3 Assembly 
+```{r}
+supp_multi_mod <- plot_grid(boxplot_15B_150M, 
                             pisces_boxplot, 
                             labels = c('A', 'B'), 
                             ncol = 1, 
                             rel_heights = c(1.1, 1))
 
-ggsave(multi_mod_plot, 
-       filename = "multi_mod_plot.png",
-       path = here("figs"),
-       width = 5,
-       height = 8,
-       dpi=600)
+#ggsave(supp_multi_mod, 
+#       filename = "supp_multi_mod.png",
+#       path = here("figs"),
+#       width = 12,
+#       height = 8,
+#       dpi=600)
 
-multi_mod_plot
-
+supp_multi_mod
 ```
 
-
+# Supplementary Figure 1
 ```{r}
 
 # mutate df so that it is in the correct form
@@ -1180,23 +1091,24 @@ multi_mod_plot
 
 supp_data_mutated = data %>%
   group_by(Dataset, Compression_methd) %>%
-  summarize(mean_rho_score = mean(rho_score_test, na.rm = TRUE), .groups = 'drop') %>%
-  pivot_wider(names_from = Compression_methd, values_from = mean_rho_score)
+  summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
+  pivot_wider(names_from = Compression_methd, values_from = mean_R2_score)
 
 ```
 
 ```{r}
-#"pca1-2", "mean"
-methods_no_mean <- c("bos", "iDCT", "maxPool", "pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
+methods_no_mean <- c("maxPool", "iDCT5", 'iDCT4', "pca1", 'rbf1', 'sigmoid1', "bos", 'iDCT3', "pca2", 'sigmoid2', 'iDCT2', 'rbf2', 'iDCT1')
+  
+  #c("maxPool", 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2', "pca1", "pca2", "rbf1", "rbf2")
+
+  #c("bos", "iDCT", "maxPool","pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
+
+
 
 scatter_plots_list <- list()
 
 for(method in methods_no_mean){
-
-  if(method == 'iDCT'){
-    dot_color <- '#D55E00'
-  } else{
-  dot_color = 'black'}
+  dot_color = 'black'
   
   
   plot <- supp_data_mutated %>%
@@ -1204,14 +1116,23 @@ for(method in methods_no_mean){
     geom_point(size = 1, color = dot_color) +
     scale_x_continuous(limits = c(0, 1)) +
     scale_y_continuous(limits = c(0, 1)) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = '#0072B2') +
-    labs(x = "mean", y = method) +
+    geom_abline(slope = 1, 
+                intercept = 0, 
+                linetype = "dashed", 
+                color = '#0072B2') +
+    labs(x = "mean", 
+         y = method) +
     theme_minimal_grid(12, rel_small = 1) +
     theme(
-      panel.background = element_rect(fill = "white", colour = "white"),
-      plot.background = element_rect(fill = "white", colour = "white"),
+      panel.background = element_rect(fill = "white", 
+                                      colour = "white"),
+      plot.background = element_rect(fill = "white", 
+                                     colour = "white"),
       legend.position = "none",
-      panel.border = element_rect(color = "black", fill = NA, size = .5),
+      panel.border = element_rect(color = "black", 
+                                  fill = NA, 
+                                  size = .5
+                                  ),
       axis.line = element_blank(),
       axis.ticks.x = element_line(color = "black"),
       axis.ticks.y = element_line(color = "black"),
@@ -1227,36 +1148,36 @@ for(method in methods_no_mean){
 
 ```{r}
 
-final_methods_plot <- plot_grid(plotlist = scatter_plots_list)
+final_methods_plot <- plot_grid(plotlist = scatter_plots_list, ncol =3)
 
-ggsave(final_methods_plot, 
-       filename = "final_methods_plot.png",
-       path = here("figs"),
-       width = 9,
-       height = 9,
-       dpi=600)
+#ggsave(final_methods_plot, 
+#       filename = "sup1_DMS_results_R2.png",
+#       path = here("figs"),
+#       width = 9,
+#       height = 12,
+#       dpi=600)
 
 final_methods_plot
 ```
+
+# Supplementary Figure 2
 ```{r}
 exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
 supp_pisces_mutated = pisces_data %>%
   group_by(Dataset, Compression_methd) %>%
-  summarize(mean_rho_score = mean(rho_score_test, na.rm = TRUE), .groups = 'drop') %>%
-  pivot_wider(names_from = Compression_methd, values_from = mean_rho_score)
+  summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
+  pivot_wider(names_from = Compression_methd, values_from = mean_R2_score)
 
 supp_pisces_mutated <- filter(supp_pisces_mutated, !(Dataset %in% exclude_datasets))
 
-methods_no_mean <- c("bos", "iDCT", "maxPool", "pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
+methods_no_mean <- c("bos", "maxPool", "iDCT5", "iDCT4", "iDCT3", "pca1", "iDCT2", "sigmoid1", "rbf1", 'iDCT1', 'pca2', 'sigmoid2', 'rbf2')
+  #c("bos", "iDCT", "maxPool", "pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
 
 pisces_scatter_plots_list <- list()
 
 for(method in methods_no_mean){
 
-  if(method == 'iDCT'){
-    dot_color <- '#D55E00'
-  } else{
-  dot_color = 'black'}
+  dot_color = 'black'
   
   
   plot <- supp_pisces_mutated %>%
@@ -1264,14 +1185,23 @@ for(method in methods_no_mean){
     geom_point(size = 1, color = dot_color) +
     scale_x_continuous(limits = c(0, 1)) +
     scale_y_continuous(limits = c(0, 1)) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = '#0072B2') +
-    labs(x = "mean", y = method) +
+    geom_abline(slope = 1, 
+                intercept = 0, 
+                linetype = "dashed", 
+                color = '#0072B2'
+                ) +
+    labs(x = "mean", 
+         y = method) +
     theme_minimal_grid(12, rel_small = 1) +
     theme(
-      panel.background = element_rect(fill = "white", colour = "white"),
-      plot.background = element_rect(fill = "white", colour = "white"),
+      panel.background = element_rect(fill = "white", 
+                                      colour = "white"),
+      plot.background = element_rect(fill = "white", 
+                                     colour = "white"),
       legend.position = "none",
-      panel.border = element_rect(color = "black", fill = NA, size = .5),
+      panel.border = element_rect(color = "black", 
+                                  fill = NA, 
+                                  size = .5),
       axis.line = element_blank(),
       axis.ticks.x = element_line(color = "black"),
       axis.ticks.y = element_line(color = "black"),
@@ -1284,17 +1214,238 @@ for(method in methods_no_mean){
 
 
 
-final_methods_pisces <- plot_grid(plotlist = pisces_scatter_plots_list)
+final_methods_pisces <- plot_grid(plotlist = pisces_scatter_plots_list, ncol =3)
 
-ggsave(final_methods_pisces, 
-       filename = "final_methods_pisces.png",
-       path = here("figs"),
-       width = 9,
-       height = 9,
-       dpi=600)
+#ggsave(final_methods_pisces, 
+#       filename = "sup3_pisces_R2.png",
+#       path = here("figs"),
+#       width = 9,
+#       height = 12,
+#       dpi=600)
 
 final_methods_pisces
 
 
 
+```
+
+
+# Supplementary Figure 4:
+```{r}
+
+mean_grouped_150M_650M_15B <- grouped_150M_650M_15B %>%
+  filter(Compression_methd %in% c('mean'))
+
+
+mean_grouped_150M_650M_15B$param <- factor(mean_grouped_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
+
+# PABP doubles= largest, PABP_singles = smallest
+inc_order = c('PABP singles', 'RL401 2013', 'RL401 2014', 'IF1 ECOLI', 'TIM THETH', 'DLG4 RAT', 'RASH HUMAN', 'HSP82 YEAST', 'BLAT ECOLX 2015', 'PABP doubles')
+
+mean_grouped_150M_650M_15B$Dataset <- factor(mean_grouped_150M_650M_15B$Dataset, levels = inc_order)  
+
+  
+
+color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
+
+DMS_barplot <- mean_grouped_150M_650M_15B %>%
+  ggplot(aes(y = mean_score, 
+         x = Dataset,
+         fill = param
+         ))+
+  geom_bar(stat = 'identity', 
+           width = 0.7,
+           position = position_dodge(),
+           alpha = 0.85) + 
+  scale_fill_manual(values = color_dict)+
+  geom_errorbar(aes(
+                ymin = mean_score - std_score, 
+                ymax = mean_score + std_score),
+                width = 0.3,
+                position = position_dodge(0.7)) + 
+  coord_flip()+ 
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(x = "Dataset", 
+       y = expression(R^2), 
+       fill="Model") +
+  theme_minimal_vgrid(12, rel_small = 1) +
+  theme(panel.background = element_rect(fill = "white", 
+                                        colour ="white"),
+      plot.background = element_rect(fill = "white", 
+                                     colour = "white"),
+      legend.position = "top",
+      panel.border = element_rect(color = "black", 
+                                  fill = NA, 
+                                  size = .5),
+      axis.line = element_blank(),
+      axis.ticks.x = element_line(color = "black"),
+      axis.ticks.y = element_line(color = "black"),
+      plot.margin = margin(0, 10, 0, 10)
+    )
+         
+
+
+#ggsave(DMS_barplot, 
+#       filename = "DMS_barplot.png",
+#       path = here("figs"),
+#       width = 7,
+#       height = 10,
+#       dpi=600)
+   
+
+ 
+DMS_barplot
+         
+
+```
+# Supplementary Figure 5
+```{r}
+
+mean_pisces_150M_650M_15B <- pisces_150M_650M_15B %>%
+  filter(Compression_methd %in% c('mean'))
+
+mean_pisces_150M_650M_15B$param <- factor(mean_pisces_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
+
+
+color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
+
+
+pisces_barplot <- mean_pisces_150M_650M_15B %>%
+
+  ggplot(aes(y = mean_score, 
+         x = fct_reorder(Dataset, mean_score),
+         fill = param
+         ))+
+  geom_bar(stat = 'identity', 
+           width = 0.7,
+           position = position_dodge(),
+           alpha = 0.85) + 
+  scale_fill_manual(values = color_dict)+
+  geom_errorbar(aes(
+                ymin = mean_score - std_score, 
+                ymax = mean_score + std_score),
+                width = 0.3,
+                position = position_dodge(0.7)) + 
+  coord_flip()+ 
+  guides(fill = guide_legend(reverse = TRUE))+
+  labs(x = "Dataset", 
+       y = expression(R^2), 
+       fill='Model') +
+  theme_minimal_vgrid(12, rel_small = 1) +
+  theme(panel.background = element_rect(fill = "white", 
+                                        colour ="white"),
+      plot.background = element_rect(fill = "white", 
+                                     colour = "white"),
+      legend.position = "top",
+      panel.border = element_rect(color = "black", 
+                                  fill = NA, 
+                                  size = .5),
+      axis.line = element_blank(),
+      axis.ticks.x = element_line(color = "black"),
+      axis.ticks.y = element_line(color = "black"),
+      plot.margin = margin(0, 10, 0, 10)
+    )
+         
+
+
+#ggsave(pisces_barplot, 
+#       filename = "pisces_barplot.png",
+#       path = here("figs"),
+#       width = 7,
+#       height = 10,
+#       dpi=600)
+   
+
+ 
+pisces_barplot
+```
+
+
+
+
+# extra code unused plots
+```{r}
+# methods = c('mean', 'maxPool')
+# 
+# 
+# 
+# grouped_data <- data %>%
+#   filter(Compression_methd %in% methods) %>%
+#   group_by(Dataset, Compression_methd) %>%
+#   summarise(
+#     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+#     std_score = sd(get('R2_score_test'), na.rm = TRUE)
+#   ) %>%
+#   ungroup()
+# 
+# 
+# mean_data <- grouped_data %>%
+#   filter(Compression_methd == "mean")
+# 
+# ordered_levels <- mean_data %>%
+#   arrange(mean_score) %>%
+#   pull(Dataset)
+# 
+# grouped_data <- grouped_data %>%
+#   mutate(Dataset = factor(Dataset, levels = ordered_levels))
+
+
+
+
+```
+
+```{r}
+#, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%
+# custom_colors <- c("mean" = '#0072B2', "maxPool" = '#D55E00')
+# 
+# 
+# scatter_150M <- grouped_data %>%
+#   ggplot(aes(
+#       x = mean_score, 
+#       y = Dataset,
+#       color = Compression_methd
+#       )) +
+#   geom_point(alpha = 1
+#       ) +
+#   geom_errorbarh(aes(
+#       xmin = mean_score - std_score, 
+#       xmax = mean_score + std_score), 
+#       height = 0.3,
+#       alpha = .7
+#       ) +
+#       scale_x_continuous(limits = c(0, .8)) + 
+#   scale_color_manual(values = custom_colors) +
+#   labs(x = "R2", 
+#        y = "", 
+#        color = "Compression Method"
+#        ) +
+#   
+#   theme_minimal_vgrid(12, rel_small = 1)+
+#   theme(
+#         panel.background = element_rect(fill = "white", 
+#                                         colour = "white"),
+#         plot.background = element_rect(fill = "white", 
+#                                        colour = "white"),
+#         legend.position = "top",
+#         panel.border = element_rect(color = "black", 
+#                                     fill = NA, 
+#                                     size = .5),
+#         axis.text.y = element_text(size = 10),
+#         axis.line = element_blank(),
+#         axis.ticks.x = element_line(color = "black"),
+#         axis.ticks.y = element_line(color = "black"),
+# 
+#         
+#         plot.margin = margin(0, 0, 0, 0)) 
+# 
+# 
+# #ggsave(scatter_150M, 
+#       filename = "sup5_DMS_scatter.png",
+#       path = here("figs"),
+#       width = 8,
+#       height = 10, #8
+#       dpi=600)
+
+
+#scatter_150M
 ```
