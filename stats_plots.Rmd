@@ -405,29 +405,35 @@ model_150M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = p
 slope_150M <- coef(model_150M)[2]
 r_squared_150M <- summary(model_150M)$r.squared
 
-label_150M <- paste("Slope:", round(slope_150M, 2), "\n", paste0("R^2: ", round(r_squared_150M, 2)))
-#paste0("~R^{2} == "
+
+label_150M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_150M), 2)), 
+                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_150M), 2)) ~ "     "))
 
 
 model_650M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "650M")
 slope_650M <- coef(model_650M)[2]
 r_squared_650M <- summary(model_650M)$r.squared
 
-label_650M <- paste("Slope:", round(slope_650M, 2), "\n", paste("R^2:", round(r_squared_650M, 2)))
+
+label_650M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_650M), 2)), 
+                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_650M), 2)) ~ "   "))
 
 
 model_15B <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "15B")
 slope_15B <- coef(model_15B)[2]
 r_squared_15B <- summary(model_15B)$r.squared
 
-label_15B <- paste("Slope:", round(slope_15B, 2), "\n", paste("R^2:", round(r_squared_15B, 2)))
+
+label_15B <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_15B), 2)), 
+                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_15B), 2)) ~ "     "))
 
 
 data_text <- data.frame(
-  labels = c(label_150M, label_650M, label_15B),
+  #labels = c(label_150M, label_650M, label_15B),
+  labels = I(list(label_150M, label_650M, label_15B)),
   param = c("150M", "650M", "15B"),
-  x = c(2050, 2050, 2050),
-  y = c(1.13, 1.13, 1.13)
+  x = c(2100, 2100, 2100),
+  y = c(1.10, 1.10, 1.10)
 )
 
 data_text$param <- factor(data_text$param, levels = c("150M", "650M", "15B"))
@@ -505,10 +511,12 @@ plot_param <- data_with_size %>%
         plot.margin = margin(10, 10, 0, 10)
         )+
   
-        geom_text(
-        data    = data_text,
+    geom_text(
+        data = data_text,
         mapping = aes(x = x, y = y, label = labels),
-        #parse=TRUE
+        parse=TRUE,
+        #hjust = 0,     # Adjust label alignment
+    #vjust = 0
         )
     
 
@@ -521,15 +529,15 @@ plot_param <- plot_param + facet_grid(cols = vars(param))
 
 
 
-plot_param 
 
-# ggsave(plot_param, 
+#ggsave(plot_param, 
 #        filename = "plot_param.png",
 #        path = here("figs"),
 #        width = 8,
 #        height = 3,
 #        dpi=600)
 
+plot_param 
 
 
 ```
