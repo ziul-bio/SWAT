@@ -17,15 +17,24 @@
 
 ## Overview
 
-text
+The trend of increasing size of Protein Language Models (pLMs) necessitates the benchmarking of model performance. While logic may say that bigger = better, biological complexity and dataset size limitations/diversity can complicate analysis. This project offers an in-depth investigation into optimizing transfer learning with Evolutionary Scale Modeling 2 (ESM2), and evaluates the performance of the model's embeddings across different parameter sizes to determine the impact of size on transfer learning in biological datasets. 
 
 ### Objective
 
-text
+This project aims to 
+* create a deeper understanding on the relationship between model size and maximizing transfer learning
+** especially when PLMs follow the trend of LLMs and get bigger and bigger
+* is bigger really more effective => takes a lot more computational power and resources that are usually not as available in academia
+* find the model size that maximizes transfer learning in different types of biological datasets
+* 
 
 ### Methodology
 
 text
+
+* Python 
+* Pandas 
+* Blast 
 
 ### Innovation and Impact
 
@@ -36,14 +45,8 @@ text
 * 3 - ?
 
 
-### Methods
-
-* Python 
-* Pandas 
-* Blast 
-
-
 ### References
+
 https://www.who.int/
 https://covid.saude.gov.br/
 
