@@ -1,10 +1,7 @@
 [![author](https://img.shields.io/badge/author-Authors-blue.svg)](https://wilkelab.org) [![](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/downloads/release/python) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/allmanbrent/picornavirus_2C_protein/issues) [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-lightgrey.svg)](http://perso.crans.org/besson/LICENSE.html)
 
-<p align="center">
-  <img src="banner.png" >
-</p>
 
-# ProteinEmbedding compression with iDCT
+# Bigger is not always better in protein language models
 <sub>*Data Analysis</sub>
 
 
@@ -18,16 +15,19 @@
 
 # About the project:
 
-## Head1
-### Head2
+## Overview
 
 text
 
-### Introduction
+### Objective
 
 text
 
-### Aims
+### Methodology
+
+text
+
+### Innovation and Impact
 
 text
 
@@ -43,7 +43,7 @@ text
 * Blast 
 
 
-### Referências
+### References
 https://www.who.int/
 https://covid.saude.gov.br/
 
