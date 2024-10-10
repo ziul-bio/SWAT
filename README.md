@@ -36,11 +36,3 @@ This project aims to create a deeper understanding of the relationship between m
 ### Innovation and Impact
 
 By enhancing our understanding of the impact of model size on analysis, we can instead focus on finding new ways to optimize performance by improving smaller models rather than scaling up in size. This will create greater accessibilty for analysis, especially for projects that may not have the resources or computational power to implement larger models.
-
-
-### References
-
-https://www.who.int/
-https://covid.saude.gov.br/
-
-
