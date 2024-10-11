@@ -10,7 +10,10 @@
 
 **Links:**
 
-* [Link](https://wilkelab.org)
+* [Wilke Lab](https://wilkelab.org)
+
+
+![plot](/fig1_scheme.png)
 
 
 # About the project:
