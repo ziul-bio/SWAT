@@ -1,4 +1,9 @@
-[![author1](https://img.shields.io/badge/author-Luiz_Vieira-blue.svg)](https://www.linkedin.com/in/luiz-carlos-vieira-4582797b/) [![author2](https://img.shields.io/badge/author-Morgan_Handojo-blue.svg)](https://www.linkedin.com/in/morgan-handojo/) [![The Wilke Lab](https://img.shields.io/badge/Wilke-Lab-brightgreen.svg?style=flat)] [![](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/downloads/release/python) [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/allmanbrent/picornavirus_2C_protein/issues) [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-lightgrey.svg)](http://perso.crans.org/besson/LICENSE.html)
+[![author1](https://img.shields.io/badge/author-Luiz_Vieira-blue.svg)](https://www.linkedin.com/in/luiz-carlos-vieira-4582797b/) 
+[![author2](https://img.shields.io/badge/author-Morgan_Handojo-blue.svg)](https://www.linkedin.com/in/morgan-handojo/) 
+[![The Wilke Lab](https://img.shields.io/badge/Wilke-Lab-brightgreen.svg?style=flat)](https://wilkelab.org) 
+[![](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/downloads/release/python) 
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/ziul-bio/SWAT/issues) 
+[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-lightgrey.svg)](http://perso.crans.org/besson/LICENSE.html)
 
 
 # Bigger is not always better in protein language models
