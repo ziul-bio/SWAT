@@ -1,5 +1,5 @@
-[![author1](https://img.shields.io/badge/author-Luiz_Vieira-blue.svg)](https://www.linkedin.com/in/luiz-carlos-vieira-4582797b/) 
-[![author2](https://img.shields.io/badge/author-Morgan_Handojo-blue.svg)](https://www.linkedin.com/in/morgan-handojo/) 
+[![author](https://img.shields.io/badge/author1-Luiz_Vieira-blue.svg)](https://www.linkedin.com/in/luiz-carlos-vieira-4582797b/) 
+[![author](https://img.shields.io/badge/author2-Morgan_Handojo-blue.svg)](https://www.linkedin.com/in/morgan-handojo/) 
 [![The Wilke Lab](https://img.shields.io/badge/Wilke-Lab-brightgreen.svg?style=flat)](https://wilkelab.org) 
 [![](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/downloads/release/python) 
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/ziul-bio/SWAT/issues) 
@@ -35,6 +35,8 @@ This project aims to create a deeper understanding of the relationship between m
 By enhancing our understanding of the impact of model size on analysis, we can instead focus on finding new ways to optimize performance by improving smaller models rather than scaling up in size. This will create greater accessibilty for analysis, especially for projects that may not have the resources or computational power to implement larger models.
 
 
-<sub>Data Analysis</sub>
+**Keywords:** ESM2 | pLM Embeddings | Feature compression | Transfer Learning 
 
-**Description:** Data Science, Bioinformatics, Python, bash-unix.
+
+# Reproducibility
+
