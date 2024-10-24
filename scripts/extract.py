@@ -57,7 +57,7 @@ def create_parser():
     parser.add_argument(
         "--truncation_seq_length",
         type=int,
-        default=1022,
+        default=5000,
         help="truncate sequences longer than the given value",
     )
 
