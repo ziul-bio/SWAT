@@ -6,8 +6,8 @@
 
 
 ### Usage ###
-#python scripts/extract.py esm2_t30_150M_UR50D data/some_proteins.fasta embeddings/some_proteins_emb_esm2 --repr_layers 30 --include mean 
-#python scripts/extract.py esm2_t30_150M_UR50D ../LEAP/data/data_processed.fasta embeddings/pisces_esm2_150M --repr_layers 30 --include bos mean per_tok
+#python scripts/extract.py esm2_t30_150M_UR50D data/metadata_pisces/pisces_len64-1022.fasta embeddings/pisces_esm2_150M --repr_layers 30 --include bos mean per_tok
+#python scripts/extract.py esm2_t33_650M_UR50D data/metadata_pisces/pisces_len64-1022.fasta embeddings/pisces_esm2_650M --repr_layers 33 --include bos mean per_tok
 
 
 
