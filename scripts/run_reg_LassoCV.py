@@ -55,7 +55,8 @@ def run_regression(features, target):
         # Define and train the regression model
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=ConvergenceWarning)
-            model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=48)
+            #model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=-1) # v01
+            model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=-1)
             model.fit(X_train, y_train)
 
             # get the number of non-zero coefficients
@@ -122,31 +123,28 @@ def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_
 
 
 
-def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
+def run_regression_on_compressed_files(path_compressed_embed_file, path_meta_data):
     '''Run regression on compressed embeddings'''
+    
     meta_data = pd.read_csv(path_meta_data)
-
     results = pd.DataFrame()
-    for file in os.listdir(path_compressed_embeds):
-        if file.endswith('.pkl'):
-        #if file.endswith('.pkl') and 'iDCT2' in file:
-            method = file.split('_')[-1].split('.')[0]
-            print('\nResults for method:', method)
-            file_path = os.path.join(path_compressed_embeds, file)
-            embed = pd.read_pickle(file_path)
-            embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
-            embed_df.rename(columns={'index': 'ID'}, inplace=True)
-
-            data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
-            target = data['target']
-            features = data.iloc[:, meta_data.shape[1]:]
-            features = features_scaler(features)
-
-            # run regression
-            r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
-            res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
-            res['Compression_method'] = method
-            results = pd.concat([results, res], axis=0)
+    method = path_compressed_embed_file.split('_')[-1].split('.')[0]
+    
+    print('Results for method:', method)
+    # load and merge the data with features
+    embed = pd.read_pickle(path_compressed_embed_file)
+    embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
+    embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
+    target = data['target']
+    features = data.iloc[:, meta_data.shape[1]:]
+    features = features_scaler(features)
+    
+    # run regression
+    r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
+    res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
+    res['Compression_method'] = method
+    results = pd.concat([results, res], axis=0)
 
     return results
 
@@ -155,18 +153,18 @@ def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
 
 def main():
     parser = argparse.ArgumentParser(description="Run regression for different target datasets and layers")
-    parser.add_argument("-i", "--input", type=str, help="Path to the output file")
+    parser.add_argument("-i", "--input", type=str, help="Path to the input file")
     parser.add_argument("-m", "--metadata", type=str, help="Target name in the metadata")
     parser.add_argument("-o", "--output", type=str, help="Path to the output file")
     args = parser.parse_args()
     
     # Define the target name and output file
-    path_compressed_embed = args.input
+    path_compressed_embed_file = args.input
     path_meta_data = args.metadata
     output = args.output
    
 
-    results = run_regression_on_compressed_files(path_compressed_embed, path_meta_data)
+    results = run_regression_on_compressed_files(path_compressed_embed_file, path_meta_data)
     results.to_csv(output)
     print(f'Process Finished!')
 
