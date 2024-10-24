@@ -44,13 +44,20 @@ By enhancing our understanding of the impact of model size on analysis, we can i
 
 ## Example of how to reproduce our results
 
+1. **Extract embeddings**:  
 ```bash
 # Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
 python scripts/extract.py esm2_t30_150M_UR50D data/DMS_mut_sequences/BLAT_ECOLX_Ostermeier2014_muts.fasta embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M --repr_layers 30 --include bos mean per_tok
+```
 
+2. **Compress embeddings**:  
+```bash
 # Then we can compress the embeddings with the following command
 python scripts/compressing_embeddings.py  -e embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M -c mean -l 30
+```
 
+4. **Regression Model**:  
+```bash
 # with the compressed embedding we can run the regression model, see script for more details
 python scripts/run_reg_Lasso.py -i embeddings/BLAT_ECOLX_Ostermeier2014_esm2_150M_compressed/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.pkl -m data/metadata_DMS/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
 ```
