@@ -38,5 +38,33 @@ By enhancing our understanding of the impact of model size on analysis, we can i
 **Keywords:** ESM2 | pLM Embeddings | Feature compression | Transfer Learning 
 
 
+
+
 # Reproducibility
+
+## Example of how to reproduce our results
+
+```bash
+# Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
+python scripts/extract.py esm2_t30_150M_UR50D data/DMS_mut_sequences/BLAT_ECOLX_Ostermeier2014_muts.fasta embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M --repr_layers 30 --include bos mean per_tok
+
+# Then we can compress the embeddings with the following command
+python scripts/compressing_embeddings.py  -e embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M -c mean -l 30
+
+# with the compressed embedding we can run the regression model, see script for more details
+python scripts/run_reg_Lasso.py -i embeddings/BLAT_ECOLX_Ostermeier2014_esm2_150M_compressed/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.pkl -m data/metadata_DMS/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
+```
+
+
+## Using a bash script to loop through all files
+Extracting all embeddings on a loop.
+```bash
+bash run_extraction_DMS.sh
+
+# Compression of the embeddings using a bash script to compress all the embeddings at once
+bash run_compression_DMS.sh
+
+# Running the regression model for all the compressed embeddings
+bash run_lassoCV_DMS.sh
+```
 
