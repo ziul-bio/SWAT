@@ -7,7 +7,7 @@
 
 
 # Bigger is not always better in protein language models
-![plot](/fig1_scheme.png)
+![plot](/figures/fig1_scheme.png)
 
 
 # About the project:
