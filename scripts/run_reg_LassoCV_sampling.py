@@ -13,12 +13,15 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn import metrics
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso, LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import spearmanr
 
+# to ignore the convergence warnings and Rho computeation warnings. 
+# Use with caution. Only use when you are sure that the model is working fine.
 import warnings
+warnings.filterwarnings('ignore') 
 from sklearn.exceptions import ConvergenceWarning
 
 
@@ -26,7 +29,7 @@ from sklearn.exceptions import ConvergenceWarning
 
 def features_scaler(features):
     '''Scale the features by min-max scaler, to ensure that the features selected by Lasso are not biased by the scale of the features'''
-    scaler = MinMaxScaler(feature_range=(-1, 1))
+    scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_features = scaler.fit_transform(features)
     return pd.DataFrame(scaled_features)
 
@@ -41,7 +44,7 @@ def run_regression(features, target):
     rhos_train, rhos_test = [], []
 
     # Define the KFold cross-validator
-    kf = KFold(n_splits=10, shuffle=True, random_state=42)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
     # Loop over the KFold splits
     for kfold, (train_index, test_index) in enumerate(kf.split(features)):
@@ -51,8 +54,8 @@ def run_regression(features, target):
 
         # Define and train the regression model
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=ConvergenceWarning)
-            model = Lasso(alpha=0.001, random_state=42, max_iter=20000, tol=1e-3)
+            #warnings.simplefilter("ignore", category=ConvergenceWarning)
+            model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=-1)
             model.fit(X_train, y_train)
 
             # get the number of non-zero coefficients
@@ -91,8 +94,8 @@ def run_regression(features, target):
             folds.append(kfold + 1)
             num_nonzero_coefs.append(num_nonzero_coef)
 
-
         # Return the collected results
+        print(f"Results:  fold {kfold}, r2_train: {r2_train:.3f}, r2_test: {r2_test:.3f}, Num coefs: {num_nonzero_coef}")
     print(f"Results:  r2_train: {np.mean(r2s_train):.2f}, r2_test: {np.mean(r2s_test):.2f}, Num coefs: {np.mean(num_nonzero_coefs):.2f}")
     return r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs
 
@@ -100,7 +103,7 @@ def run_regression(features, target):
 def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs):
     # Create dictionary for results
     res_dict = {
-        "Model": ['Lasso'] * 10,
+        "Model": ['Lasso'] * 5,
         "Fold": folds,
         "R2_score_train": r2s_train,
         "MAE_score_train": maes_train,
@@ -119,31 +122,34 @@ def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_
 
 
 
-def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
+def run_regression_with_sampling(input_file_path, path_meta_data):
     '''Run regression on compressed embeddings'''
-    meta_data = pd.read_csv(path_meta_data)
-
     results = pd.DataFrame()
-    for file in os.listdir(path_compressed_embeds):
-        if file.endswith('.pkl'):
-        #if file.endswith('.pkl') and 'iDCT2' in file:
-            method = file.split('_')[-1].split('.')[0]
-            print('\nResults for method:', method)
-            file_path = os.path.join(path_compressed_embeds, file)
-            embed = pd.read_pickle(file_path)
-            embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
-            embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    print('Reading the embeddings...')
+    embed_df = pd.read_csv(input_file_path)
+    embed_df.rename(columns={'Unnamed: 0': 'ID'}, inplace=True)
 
-            data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
-            target = data['target']
-            features = data.iloc[:, meta_data.shape[1]:]
-            features = features_scaler(features)
+    #embed = pd.read_pickle(input_file_path)
+    #embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
+    #embed_df = embed_df = pd.DataFrame(embed).T.reset_index()
+    #embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    
+    sample_sizes = [32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000, 1000000]
+    for ss in sample_sizes: 
+        print('\nResults for sample size:', ss)
+        meta_data = pd.read_csv(path_meta_data)
+        ss = min(ss, len(meta_data))
+        meta_data = meta_data.sample(n=ss, random_state=42)
 
-            # run regression
-            r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
-            res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
-            res['Compression_methd'] = method
-            results = pd.concat([results, res], axis=0)
+        data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
+        target = data['target']
+        features = data.iloc[:, meta_data.shape[1]:]
+        features = features_scaler(features)
+        # run regression
+        r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
+        res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
+        res['Sample_size'] = ss
+        results = pd.concat([results, res], axis=0)
 
     return results
 
@@ -152,18 +158,18 @@ def run_regression_on_compressed_files(path_compressed_embeds, path_meta_data):
 
 def main():
     parser = argparse.ArgumentParser(description="Run regression for different target datasets and layers")
-    parser.add_argument("-i", "--input", type=str, help="Path to the output file")
+    parser.add_argument("-i", "--input", type=str, help="Path to the input file")
     parser.add_argument("-m", "--metadata", type=str, help="Target name in the metadata")
     parser.add_argument("-o", "--output", type=str, help="Path to the output file")
     args = parser.parse_args()
     
     # Define the target name and output file
-    path_compressed_embed = args.input
+    input_file_path = args.input
     path_meta_data = args.metadata
     output = args.output
    
 
-    results = run_regression_on_compressed_files(path_compressed_embed, path_meta_data)
+    results = run_regression_with_sampling(input_file_path, path_meta_data)
     results.to_csv(output)
     print(f'Process Finished!')
 

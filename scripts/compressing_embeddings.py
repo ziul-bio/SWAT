@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 -u
 import os
 import torch
+import shutil
 import numpy as np
 import pandas as pd
 
@@ -52,18 +53,6 @@ def tSNE_transformation(embeddings, num_pca_components=2):
     tSNE_features = tSNE_model.fit_transform(features)
     return tSNE_features.T
 
-# def iDCTquant(v,n):
-#     f = dct(v.T, type=2, norm='ortho')
-#     trans = idct(f[:,:n], type=2, norm='ortho')
-#     return trans.T
-
-# def quant2D(emb, n=8, m=80):
-# #def quant2D(emb, n=64, m=80): #v02 (n=64, m=80) 1/8 of the embed dimention, final dimention 5120 same as esm2_15B
-#     #dct = iDCTquant(emb[1:len(emb)-1],n)
-#     dct = iDCTquant(emb, n)
-#     ddct = iDCTquant(dct.T,m).T
-#     ddct = ddct.reshape(n*m) # turn a 2D array into a 1D vector
-#     return ddct
 
 # original implementation at https://github.com/MesihK/prost/blob/master/src/pyprost/prosttools.py
 def iDCTquant(v,n):
@@ -89,86 +78,86 @@ def quant2D(emb,n=8,m=80):
 
 ####### load embeddings functions #######    
 def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
-    embeddings = {}
     count=0
     for file in os.listdir(embed_dir):
         total_files = len(os.listdir(embed_dir))
+        
         if file.endswith('.pt'):
             file_path = os.path.join(embed_dir, file)
             label = file.split('.pt')[0]
+            tmp_folder = 'tmp_DMS9/'
+
+            if not os.path.exists(tmp_folder):
+                os.makedirs(tmp_folder)
 
             if compression_method == 'mean':
                 embed = np.array(torch.load(file_path)['mean_representations'][rep_layer])
-                embeddings[label] = embed
-
+                embedding = embed
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'bos':
                 embed = np.array(torch.load(file_path)['bos_representations'][rep_layer])
-                embeddings[label] = embed
-
+                embedding = embed
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'maxPool':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = embed.max(axis=0)
-                embeddings[label] = embed_trans
-
+                embedding = embed_trans
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca1':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
-                embeddings[label] = embed_trans[0]
-
+                embedding = embed_trans[0]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca2':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
-                embeddings[label] = embed_trans[1]
-
+                embedding = embed_trans[1]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca1-2':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
-                embeddings[label] = embed_trans.reshape(-1)
-
+                embedding = embed_trans.reshape(-1)
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'rbf1':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = kernel_pca_rbf_transformation(embed)
-                embeddings[label] = embed_trans[0]
-
+                embedding = embed_trans[0]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'rbf2':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = kernel_pca_rbf_transformation(embed)
-                embeddings[label] = embed_trans[1]
-
+                embedding = embed_trans[1]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'sigmoid1':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = kernel_pca_sigmoid_transformation(embed)
-                embeddings[label] = embed_trans[0]
-
+                embedding = embed_trans[0]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'sigmoid2':
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embed_trans = kernel_pca_sigmoid_transformation(embed)
-                embeddings[label] = embed_trans[1]
-
-            # elif compression_method == 'iDCT': #v02 (n=8, m=80), final dimention 640 same as esm2_150M
-            #     embed = np.array(torch.load(file_path)['representations'][rep_layer])
-            #     embeddings[label] = quant2D(embed, n=8, m=80) 
-
+                embedding = embed_trans[1]
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT1': #v01 original implementation
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed, n=5, m=44)
-            
+                embedding = quant2D(embed, n=5, m=44)
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT2': #v02 (n=8, m=80), final dimention 640 same as esm2_150M
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed, n=10, m=64) 
-
+                embedding = quant2D(embed, n=10, m=64) 
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT3': #v03 (n=10, m=128), final dimention 1280 same as esm2_650M 
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed, n=10, m=128) 
-            
+                embedding = quant2D(embed, n=10, m=128) 
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT4': #v04 (n=16, m=320), final dimention 5120 same as esm2_15B
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed, n=10, m=512)
-
+                embedding = quant2D(embed, n=10, m=512)
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT5': #v05 (n=16, m=640), final dimention 6400
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
-                embeddings[label] = quant2D(embed, n=10, m=640)
-                
+                embedding = quant2D(embed, n=10, m=640)
+                np.save(f"{tmp_folder}/{label}.npy", embedding)
             else:
                 raise ValueError('Invalid compression method')
                 print('Valid compression methods are: mean, bos, max_pool, pca1, pca2, pca1-2, rbf1, rbf2, sigmoid1, sigmoid2')
@@ -176,6 +165,16 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
         count+=1
         if count % 1000 == 0:
             print(f'{count}/{total_files} files compressed')
+
+    embeddings = {}
+    for file in os.listdir(tmp_folder):
+        if file.endswith('.npy'):
+            file_path = os.path.join(tmp_folder, file)
+            label = file.split('.npy')[0]
+            embeddings[label] = np.load(file_path)
+
+    # Remove the temporary folder and its contents
+    shutil.rmtree(tmp_folder)
 
     return embeddings
 
