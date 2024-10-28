@@ -81,14 +81,13 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
     count=0
     for file in os.listdir(embed_dir):
         total_files = len(os.listdir(embed_dir))
+        tmp_folder = 'tmp/'
+        if not os.path.exists(tmp_folder):
+            os.makedirs(tmp_folder)
         
         if file.endswith('.pt'):
             file_path = os.path.join(embed_dir, file)
             label = file.split('.pt')[0]
-            tmp_folder = 'tmp_DMS9/'
-
-            if not os.path.exists(tmp_folder):
-                os.makedirs(tmp_folder)
 
             if compression_method == 'mean':
                 embed = np.array(torch.load(file_path)['mean_representations'][rep_layer])
@@ -186,7 +185,6 @@ def main(embed_dir, out_dir, compression_method, rep_layer):
     l = str(rep_layer)
     c = str(compression_method)
     out_dir = str(out_dir)
-    #out_dir = f"{embed_dir[:-1]}_compressed"
     print(f"Saving compressed embeddings to {out_dir}")
     
     if not os.path.exists(out_dir):

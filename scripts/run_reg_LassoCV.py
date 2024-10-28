@@ -162,6 +162,10 @@ def main():
     path_compressed_embed_file = args.input
     path_meta_data = args.metadata
     output = args.output
+
+    output_dir = os.path.dirname(output)  # Get the directory path
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
    
 
     results = run_regression_on_compressed_files(path_compressed_embed_file, path_meta_data)
