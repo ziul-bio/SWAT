@@ -26,21 +26,75 @@ library(scales)
 
 # DMS Data preprocessing
 ```{r}
-data <- read.csv(here("results/summary_results_DMS_esm2_150M_lassoCV.csv"))
-data <- dplyr::select(data, Dataset, Compression_methd, Fold, R2_score_test, rho_score_test)
-data <- filter(data, Dataset != "HIS7 YEAST")
-data <- filter(data, Compression_methd != "pca1-2")
+#data <- read.csv(here("results/summary_results_DMS_esm2_150M_lassoCV.csv"))
+data <- read.csv(here("results/summary_DMS_all_LassoCV_esm2_150M_all_methods.csv"))
+data <- dplyr::select(data, Dataset, Compression_method, Fold, R2_score_test, rho_score_test)
+#data <- filter(data, Dataset != "HIS7 YEAST")
+#data <- filter(data, Compression_methd != "pca1-2")
 
 data
 
 # Convert categorical variables to factors and releveling the mean to be the reference group
-data$Compression_methd <- factor(data$Compression_methd)
-data$Compression_methd <- relevel(data$Compression_methd, ref = "mean")
+data$Compression_method <- factor(data$Compression_method)
+data$Compression_method <- relevel(data$Compression_method, ref = "mean")
 data$Dataset <- factor(data$Dataset)
 data$Fold <- factor(data$Fold)
 data
 ```
+```{r}
 
+#data <- data %>%
+#  mutate(Dataset = case_when(
+#     dataset == "HG_FLU_Bloom2016" ~ "New_A",
+#     dataset == "BLAT_ECOLX_Ostermeier2014" ~ "New_B",
+#     dataset == "RL401_YEAST_Bolon2014" ~ "New_C",
+#     dataset == "PABP_YEAST_Fields2013_doubles" ~ "New_C",
+#     dataset == "B3VI55_LIPST_Whitehead2015" ~ "New_C",
+#     dataset == "TIM_THETH" ~ "New_C",
+#     dataset == "CALM1_HUMAN_Roth2017" ~ "New_C",
+#     dataset == "parEparD_Laub2015_all" ~ "New_C",
+#     dataset == "BF520_env_Bloom2018" ~ "New_C",
+#     dataset == "a" ~ "New_C",
+#     dataset == "a" ~ "New_C",
+#     dataset == "a" ~ "New_C",
+#     
+#     old_names = ['',
+#        '', '',
+#        '', '', '', 'BF520_env_Bloom2018',
+#        'UBC9_HUMAN_Roth2017', 'DLG4_RAT_Ranganathan2012',
+#        'BRCA1_HUMAN_RING', 'TPMT_HUMAN_Fowler2018',
+#        'MTH3_HAEAESTABILIZED_Tawfik2015', 'HSP82_YEAST_Bolon2016',
+#        'MK01_HUMAN_Johannessen', 'PTEN_HUMAN_Fowler2018',
+#        'BG505_env_Bloom2018', 'BLAT_ECOLX_Tenaillon2013', 'TIM_SULSO',
+#        'B3VI55_LIPSTSTABLE', 'RL401_YEAST_Bolon2013',
+#        'PABP_YEAST_Fields2013_singles', 'BLAT_ECOLX_Ranganathan2015',
+#        'RL401_YEAST_Fraser2016', 'TIM_THEMA', 'AMIE_PSEAE_Whitehead',
+#        'BG_STRSQ_hmmerbit', 'GAL4_YEAST_Shendure2015',
+#        'BLAT_ECOLX_Palzkill2012', 'SUMO1_HUMAN_Roth2017',
+#        'RASH_HUMAN_Kuriyan', 'YAP1_HUMAN_Fields2012_singles',
+#        'KKA2_KLEPN_Mikkelsen2014', 'TPK1_HUMAN_Roth2017',
+#        'PA_FLU_Sun2015', 'IF1_ECOLI']
+# new_names = ['HG FLU', 'BLAT ECOLX 2014', 'RL401 2014',
+#        'PABP doubles', 'B3VI55 LIPST',
+#        'TIM THETH', 'CALM1 HUMAN', 'parEparD all',
+#        'BF520 env', 'UBC9 HUMAN', 'DLG4 RAT',
+#        'BRCA1 RING', 'TPMT HUMAN',
+#        'MTH3 HAEAESTABILIZED', 'HSP82 YEAST',
+#        'MK01 HUMAN', 'PTEN HUMAN',
+#        'BG505 env', 'BLAT ECOLX 2013', 'TIM SULSO',
+#        'B3VI55 LIPSTSTABLE', 'RL401 2013',
+#        'PABP singles', 'BLAT ECOLX 2015',
+#        'RL401 2016', 'TIM THEMA', 'AMIE PSEAE',
+#        'BG STRSQ', 'GAL4 YEAST',
+#        'BLAT ECOLX 2012', 'SUMO1 HUMAN',
+#        'RASH HUMAN', 'YAP1 singles',
+#        'KKA2 KLEPN', 'TPK1 HUMAN',
+#        'PA FLU', 'IF1 ECOLI']
+#     
+#     TRUE ~ Dataset  # Default case if no match
+#   ))
+
+```
 
 
 # DMS Fitting the lme4 model
@@ -54,7 +108,7 @@ Random Effects: The grouping variables (random effects) should be factors. In he
 Both Dataset and Fold are included as random effects to account for variability across datasets and cross-validation folds.  
 
 ```{r}
-model <- lmer(R2_score_test ~ Compression_methd + (1 | Dataset) + (1|Fold), data=data)
+model <- lmer(R2_score_test ~ Compression_method + (1 | Dataset) + (1|Fold), data=data)
 #model <- lmer(R2_score_test ~ Compression_methd + (1 | Dataset), data=data)
 ########model <- lmer(rho_score_test ~ Compression_methd + (1 | Dataset) + (1|Fold), data=data)
 #model <- lmer(rho_score_test ~ Compression_methd + (1 | Dataset), data=data)
@@ -78,27 +132,27 @@ summary(model)
 
 
 glht_results <- summary(glht(model, linfct=c(
-                              'Compression_methdbos=0',
-                              'Compression_methdiDCT1=0',
-                              'Compression_methdiDCT2=0',
-                              'Compression_methdiDCT3=0',
-                              'Compression_methdiDCT4=0',
-                              'Compression_methdiDCT5=0',
-                              'Compression_methdmaxPool=0',
-                              'Compression_methdpca1=0',
-###                              '`Compression_methdpca1-2`=0',
-                              'Compression_methdpca2=0',
-                              'Compression_methdrbf1=0',
-                              'Compression_methdrbf2=0',
-                              'Compression_methdsigmoid1=0',
-                              'Compression_methdsigmoid2=0')))
+                              'Compression_methodbos=0',
+                              'Compression_methodiDCT1=0',
+                              'Compression_methodiDCT2=0',
+                              'Compression_methodiDCT3=0',
+                              'Compression_methodiDCT4=0',
+                              'Compression_methodiDCT5=0',
+                              'Compression_methodmaxPool=0',
+                              'Compression_methodpca1=0',
+###                              '`Compression_methodpca1-2`=0',
+                              'Compression_methodpca2=0',
+                              'Compression_methodrbf1=0',
+                              'Compression_methodrbf2=0',
+                              'Compression_methodsigmoid1=0',
+                              'Compression_methodsigmoid2=0')))
 
 glht_results 
 ```
 
 
 ```{r}
-#summary(glht(model, linfct=mcp(Compression_methd="Tukey")))
+#summary(glht(model, linfct=mcp(Compression_method="Tukey")))
 ```
 
 
@@ -128,7 +182,7 @@ of residuals).
 ```{r}
 # Tidy the results
 tidy_glht <- tidy(glht_results)
-#tidy_glht<- tidy_glht %>% dplyr::filter(contrast != #'Compression_methdiDCT')
+#tidy_glht<- tidy_glht %>% dplyr::filter(contrast != #'Compression_methodiDCT')
 
 ci <- tidy(confint(glht_results)) %>% dplyr::select("contrast", "conf.high", "conf.low")
 
@@ -136,7 +190,7 @@ res_glht = merge(tidy_glht, ci, by = 'contrast')
 
 
 
-res_glht$contrast <- gsub("Compression_methd", "", res_glht$contrast)
+res_glht$contrast <- gsub("Compression_method", "", res_glht$contrast)
 
 #res_glht$contrast <- gsub("iDCT2", "iDCT", res_glht$contrast)
 
@@ -190,12 +244,12 @@ final_plot <- res_glht %>%
   ) +
   ggtitle("DMS")
 
-# ggsave(final_plot, 
-#        filename = "fig2_iDCT_DMS_v12.png",
-#        path = here("figs"),
-#        width = 6,
-#        height = 6,
-#        dpi=600)
+ #ggsave(final_plot, 
+ #       filename = "fig2_iDCT_DMS_v12.png",
+ #       path = here("figures"),
+ #       width = 6,
+ #       height = 6,
+ #       dpi=600)
 
 
 final_plot
@@ -204,7 +258,7 @@ final_plot
 
 
 
-# Sup 3A: DMS 150M/650M/15B Boxplot
+# Sup 3A: DMS 150M/650M/15B Boxplot # NOT UPDATED
 
 ```{r}
 
@@ -314,12 +368,52 @@ boxplot_15B_150M
 
 # Figure 3A: DMS Viridis Gradient
 ```{r}
-# relies on df built in "DMS 150M/650M/15B Boxplot" chunk
+multi_mod_DMS <- read.csv(here("results/summary_lassoCV_multi_model_DMS_all.csv"))
 
-gradient_plot <- grouped_150M_650M_15B %>%
-  filter(Compression_methd %in% c('mean')) %>%
+
+multi_mod_DMS <- multi_mod_DMS %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+#exlude due to sequences too long for esm1v, need to make sup figure
+exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+  
+#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
+#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
+
+grouped_multi_mod_DMS <- multi_mod_DMS %>%
+  filter(!Dataset %in% exclude_data) %>%
+  group_by(Dataset, Model) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  ungroup()
+
+# need to make an order for the x axis
+grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+
+
+```
+
+
+```{r}
+#grouped_150M_650M_15B
+
+gradient_plot <- grouped_multi_mod_DMS %>%
+  #filter(Compression_method %in% c('mean')) %>%
   ggplot(aes(
-    x = param, 
+    x = Model, 
     y = mean_score, 
     group = Dataset, 
     color = mean_score
@@ -357,19 +451,157 @@ gradient_plot <- grouped_150M_650M_15B %>%
         axis.ticks.y = element_line(color = "black"),
         plot.margin = margin(10, 10, 0, 10))
   
+gradient_plot
 
-
-# ggsave(gradient_plot, 
-#        filename = "gradient_plot.png",
-#        path = here('figs'),
-#        width = 6,
-#        height = 4,
-#        dpi=600)      
+ # ggsave(gradient_plot, 
+ #       filename = "gradient_plot.png",
+ #        path = here('figs'),
+ #        width = 11,
+ #       #6
+ #        height = 4,
+ #        dpi=600)      
 
 gradient_plot
 
 ```
-# Figure 5
+
+```{r}
+#boxplot version xD
+# 
+# color_dict = c("esm1v 650M" = "#a1cded", "esm2 8M" = "#88b0d4", "esm2 35M" = "#7093bb", "esm2 150M" = "#5a78a3", "esm2 650M" = "#465d8a", "esm2 3B" = "#334371", "esm2 15B" = "#212b59")
+color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+
+
+
+DMS_multi_boxplot <- grouped_multi_mod_DMS %>%
+  #filter(Compression_method %in% c('mean')) %>%
+  ggplot(aes(
+    x = Model, 
+    y = mean_score, 
+    #group = Dataset, 
+    #color = mean_score
+    fill = Model
+    )) +
+    geom_boxplot()+
+    scale_fill_manual(values = color_dict)+
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+DMS_multi_boxplot
+ 
+  # ggsave(DMS_multi_boxplot, 
+  #       filename = "DMS_multi_boxplot.png",
+  #        path = here('figs'),
+  #        width = 11,
+  #       #6
+  #        height = 4,
+  #       dpi=600)      
+
+DMS_multi_boxplot
+
+
+```
+
+
+
+
+# Supp Excluded DMS MultiMod
+```{r}
+
+exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+  
+#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
+#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
+
+excluded_multi_mod_DMS <- multi_mod_DMS %>%
+  filter(Dataset %in% exclude_data) %>%
+  group_by(Dataset, Model) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  ungroup()
+
+# need to make an order for the x axis
+excluded_multi_mod_DMS$Model <- factor(excluded_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+```
+
+```{r}
+
+excluded_DMS_gradient_plot <- excluded_multi_mod_DMS %>%
+  #filter(Compression_method %in% c('mean')) %>%
+  ggplot(aes(
+    x = Model, 
+    y = mean_score, 
+    group = Dataset, 
+    color = mean_score
+    )) +
+    geom_line() +
+    geom_point(shape = 21, 
+               size = 2,  
+               color = "black", 
+               aes(fill = mean_score), 
+               stroke = .2
+               ) + 
+    scale_color_viridis_c(begin = .2, 
+                          end =.8, 
+                          direction=-1) +
+    scale_fill_viridis_c(begin = .2, 
+                         end = .8, 
+                         direction = -1, guide = "none") +
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+excluded_DMS_gradient_plot
+
+ ggsave(excluded_DMS_gradient_plot, 
+       filename = "sup_excluded_DMS.png",
+        path = here('figs'),
+        width = 11,
+       #6
+        height = 4,
+        dpi=600)      
+
+excluded_DMS_gradient_plot
+```
+
+# Figure 5 #NOT UPDATED
 ```{r}
 # Fig 5
 
@@ -556,45 +788,46 @@ plot_param
 
 # Pisces Data Preprocessing
 ```{r}
-pisces_data <- read.csv(here('results/summary_results_pisces_esm2_150M_lassoCV.csv'))
+pisces_data <- read.csv(here('results/summary_PISCES_lassoCV_esm2_150M_all_methods.csv'))
 #'Pisces_summary.csv'
-pisces_data <- dplyr::select(pisces_data, c('Dataset', 'Compression_methd', 'Fold', 'R2_score_test', 'rho_score_test'))
+pisces_data <- dplyr::select(pisces_data, c('Dataset', 'Compression_method', 'Fold', 'R2_score_test', 'rho_score_test'))
 
 #pisces_data <- filter(pisces_data, !Dataset %in% c('W freq', 'M freq','V freq', 'Y freq', 'D freq','C freq', 'F freq'))
-pisces_data <- filter(pisces_data, !Compression_methd %in% c('pca1-2'))
+#pisces_data <- filter(pisces_data, !Compression_method %in% c('pca1-2'))
 
 pisces_data
 
 # Convert categorical variables to factors and releveling the mean to be the reference group
-pisces_data$Compression_methd <- factor(pisces_data$Compression_methd)
-pisces_data$Compression_methd <- relevel(pisces_data$Compression_methd, ref = "mean")
+pisces_data$Compression_method <- factor(pisces_data$Compression_method)
+pisces_data$Compression_method <- relevel(pisces_data$Compression_method, ref = "mean")
 pisces_data$Dataset <- factor(pisces_data$Dataset)
 pisces_data$Fold <- factor(pisces_data$Fold)
+
 pisces_data
 
 ```
 
 
 ```{r}
-pisces_model <- lmer(R2_score_test ~ Compression_methd + (1 | Dataset) + (1|Fold), data=pisces_data)
+pisces_model <- lmer(R2_score_test ~ Compression_method + (1 | Dataset) + (1|Fold), data=pisces_data)
 summary(pisces_model)
 ```
 
 ```{r}
-pisces_glht_results <- summary(glht(pisces_model, linfct=c('Compression_methdbos=0',
-                             'Compression_methdiDCT1=0',
-                             'Compression_methdiDCT2=0',
-                             'Compression_methdiDCT3=0',
-                             'Compression_methdiDCT4=0',
-                             'Compression_methdiDCT5=0',
-                              'Compression_methdmaxPool=0',
-                              'Compression_methdpca1=0',
-###                              '`Compression_methdpca1-2`=0',
-                              'Compression_methdpca2=0',
-                              'Compression_methdrbf1=0',
-                              'Compression_methdrbf2=0',
-                              'Compression_methdsigmoid1=0',
-                              'Compression_methdsigmoid2=0')))
+pisces_glht_results <- summary(glht(pisces_model, linfct=c('Compression_methodbos=0',
+                             'Compression_methodiDCT1=0',
+                             'Compression_methodiDCT2=0',
+                             'Compression_methodiDCT3=0',
+                             'Compression_methodiDCT4=0',
+                             'Compression_methodiDCT5=0',
+                              'Compression_methodmaxPool=0',
+                              'Compression_methodpca1=0',
+###                              '`Compression_methodpca1-2`=0',
+                              'Compression_methodpca2=0',
+                              'Compression_methodrbf1=0',
+                              'Compression_methodrbf2=0',
+                              'Compression_methodsigmoid1=0',
+                              'Compression_methodsigmoid2=0')))
 
 pisces_glht_results 
 
@@ -610,7 +843,7 @@ pisces_res_glht = merge(pisces_tidy_glht, pisces_ci, by = 'contrast')
 
 
 
-pisces_res_glht$contrast <- gsub("Compression_methd", "", pisces_res_glht$contrast)
+pisces_res_glht$contrast <- gsub("Compression_method", "", pisces_res_glht$contrast)
 
 
 # Determine significance levels
@@ -686,7 +919,7 @@ pisces_plot
 
 
 
-# Sup 3B: Pisces 150M/650M/15B boxplot 
+# Sup 3B: Pisces 150M/650M/15B boxplot #NOT UPDATED
 ```{r}
 
 #exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
@@ -791,12 +1024,61 @@ pisces_boxplot
 
 # Figure 3B: Pisces Viridis Gradient
 ```{r}
-# relies on df built in "pisces 150M/650M/15B boxplot" chunk
+multi_mod_pisces <- read.csv(here("results/summary_lassoCV_multi_model_pisces_all.csv"))
 
-gradient_pisces <- pisces_150M_650M_15B %>%
-  filter(Compression_methd %in% c('mean')) %>%
+multi_mod_pisces <- multi_mod_pisces %>%
+  mutate(Dataset = case_when(
+    Dataset == "PCP_AAfreq_Ala" ~ "A Freq",
+    Dataset == "PCP_AAfreq_Cys" ~ "C Freq",
+    Dataset == "PCP_AAfreq_Leu" ~ "L Freq",
+    Dataset == "PCP_Charge" ~ "Charge",
+    Dataset == "PCP_Hydrophobicity" ~ "Hydrophobicity",
+    Dataset == "PCP_Instability_index" ~ "Instability Index",
+    Dataset == "PCP_Isoelectric_point" ~ "Isoelectric Point",
+    Dataset == "PCP_length" ~ "Length",
+    Dataset == "PCP_mW_kDa" ~ "mW kDa",
+    Dataset == "SS_Coil" ~ "Coil",
+    Dataset == "SS_E" ~ "SS E",
+    Dataset == "SS_H" ~ "SS H",
+    TRUE ~ Dataset
+    
+  ))
+
+multi_mod_pisces <- multi_mod_pisces %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+grouped_multi_mod_pisces <- multi_mod_pisces %>%
+  #filter(!Dataset %in% exclude_data) %>%
+  group_by(Dataset, Model) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  ungroup()
+
+# need to make an order for the x axis
+grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+```
+
+
+```{r}
+
+
+gradient_pisces <- grouped_multi_mod_pisces %>%
+  #filter(Compression_methd %in% c('mean')) %>%
   ggplot(aes(
-    x = param, 
+    x = Model, 
     y = mean_score, 
     group = Dataset, 
     color = mean_score
@@ -840,12 +1122,13 @@ gradient_pisces <- pisces_150M_650M_15B %>%
   
 
 
-#ggsave(gradient_pisces, 
-       # filename = "gradient_pisces.png",
-       # path = here('figs'),
-       # width = 6,
-       # height = 4,
-       # dpi=600)      
+ggsave(gradient_pisces, 
+        filename = "gradient_pisces.png",
+        path = here('figs'),
+        width = 11,
+       #6
+        height = 4,
+        dpi=600)      
 
 gradient_pisces
 
@@ -859,7 +1142,7 @@ gradient_pisces
 
 # Figure 4: His7 sampling (DMS)
 ```{r}
-his7_sampling <- read.csv(here('results/HIS7_YEAST_Kondrashov2017_sampling_esm2_all.csv'))
+his7_sampling <- read.csv(here('results/summary_lassoCV_HIS7_datasize_effect.csv'))
 
 ```
 
@@ -900,7 +1183,7 @@ his7_sample_R2_plot <- grouped_his7_sampling %>%
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))
                        ) +
-  scale_y_continuous(limits = c(-.3, NA)) +
+  scale_y_continuous(limits = c(-.1, NA)) +
   geom_errorbar(aes(
       ymin = mean_R2_score - std_R2_score, 
       ymax = mean_R2_score + std_R2_score), 
@@ -1014,12 +1297,12 @@ his7_sample_plot <- plot_grid(his7_sample_R2_plot,
                         rel_heights = c(1.1, 1),
                         ncol = 1)
 
-#ggsave(his7_sample_plot, 
-#       filename = "his7_sample_plot.png",
-#       path = here("figs"),
-#       width = 7,
-#       height = 6,
-#       dpi=600)
+# ggsave(his7_sample_plot, 
+#        filename = "his7_sample_plot.png",
+#        path = here("figs"),
+#        width = 7,
+#        height = 6,
+#        dpi=600)
 
 his7_sample_plot
 
@@ -1043,14 +1326,14 @@ double_plot <- plot_grid(final_plot,
 
 #ggsave(double_plot, 
 #       filename = "double_lmer.png",
-#       path = here("figs"),
+#       path = here("figures"),
 #       width = 8,
 #       height = 4,
 #       dpi=600)
 double_plot
 
 ```
-# Figure 3 Assembly
+# Figure 3 Assembly 
 ```{r}
 gradient_plots <- plot_grid(gradient_plot, 
                         gradient_pisces,
@@ -1059,12 +1342,12 @@ gradient_plots <- plot_grid(gradient_plot,
                         rel_heights = c(1, 1),
                         ncol = 1)
 
-#ggsave(gradient_plots, 
-#       filename = "gradient_plots.png",
-#       path = here("figs"),
-#       width = 6,
-#       height = 8,
-#       dpi=600)
+ggsave(gradient_plots, 
+       filename = "gradient_plots.png",
+       path = here("figs"),
+       width = 11,
+       height = 8,
+       dpi=600)
 
 gradient_plots
 
@@ -1072,7 +1355,7 @@ gradient_plots
 
 
 # supplementary figs 
-# Supplementary Figure 3 Assembly 
+# Supplementary Figure 3 Assembly #NOT UPDATED
 ```{r}
 supp_multi_mod <- plot_grid(boxplot_15B_150M, 
                             pisces_boxplot, 
@@ -1098,9 +1381,9 @@ supp_multi_mod
 # use cowplot to combine them all
 
 supp_data_mutated = data %>%
-  group_by(Dataset, Compression_methd) %>%
+  group_by(Dataset, Compression_method) %>%
   summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
-  pivot_wider(names_from = Compression_methd, values_from = mean_R2_score)
+  pivot_wider(names_from = Compression_method, values_from = mean_R2_score)
 
 ```
 
@@ -1158,25 +1441,25 @@ for(method in methods_no_mean){
 
 final_methods_plot <- plot_grid(plotlist = scatter_plots_list, ncol =3)
 
-#ggsave(final_methods_plot, 
-#       filename = "sup1_DMS_results_R2.png",
-#       path = here("figs"),
-#       width = 9,
-#       height = 12,
-#       dpi=600)
+# ggsave(final_methods_plot, 
+#        filename = "sup1_DMS_results_R2.png",
+#        path = here("figs"),
+#        width = 9,
+#        height = 12,
+#        dpi=600)
 
 final_methods_plot
 ```
 
-# Supplementary Figure 2
+# Supplementary Figure 2 
 ```{r}
-exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
+# exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
 supp_pisces_mutated = pisces_data %>%
-  group_by(Dataset, Compression_methd) %>%
+  group_by(Dataset, Compression_method) %>%
   summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
-  pivot_wider(names_from = Compression_methd, values_from = mean_R2_score)
+  pivot_wider(names_from = Compression_method, values_from = mean_R2_score)
 
-supp_pisces_mutated <- filter(supp_pisces_mutated, !(Dataset %in% exclude_datasets))
+# supp_pisces_mutated <- filter(supp_pisces_mutated, !(Dataset %in% exclude_datasets))
 
 methods_no_mean <- c("bos", "maxPool", "iDCT5", "iDCT4", "iDCT3", "pca1", "iDCT2", "sigmoid1", "rbf1", 'iDCT1', 'pca2', 'sigmoid2', 'rbf2')
   #c("bos", "iDCT", "maxPool", "pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
@@ -1224,12 +1507,12 @@ for(method in methods_no_mean){
 
 final_methods_pisces <- plot_grid(plotlist = pisces_scatter_plots_list, ncol =3)
 
-#ggsave(final_methods_pisces, 
-#       filename = "sup3_pisces_R2.png",
-#       path = here("figs"),
-#       width = 9,
-#       height = 12,
-#       dpi=600)
+# ggsave(final_methods_pisces, 
+#        filename = "sup2_pisces_R2.png",
+#        path = here("figs"),
+#        width = 9,
+#        height = 12,
+#        dpi=600)
 
 final_methods_pisces
 
@@ -1238,39 +1521,79 @@ final_methods_pisces
 ```
 
 
-# Supplementary Figure 4:
+# Supplementary Figure 4 #NOT UPDATED
 ```{r}
+rev_grouped_multi_mod_DMS <- multi_mod_DMS %>%
+  group_by(Dataset, Model) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  ungroup()
 
-mean_grouped_150M_650M_15B <- grouped_150M_650M_15B %>%
-  filter(Compression_methd %in% c('mean'))
+c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
 
 
-mean_grouped_150M_650M_15B$param <- factor(mean_grouped_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
+rev_grouped_multi_mod_DMS <- rev_grouped_multi_mod_DMS %>%
+  mutate(Dataset = case_when(
+    Dataset == "UBE4B_MOUSE_Klevit2013_singles" ~ "UBE4B MOUSE",
+    Dataset == "BRCA1_HUMAN_BRCT" ~ "BRCA1 BRCT",
+    Dataset == "POLG_HCVJF_Sun2014" ~ "POLG HCVJF",
+    TRUE ~ Dataset
+))
+
+
+rev_grouped_multi_mod_DMS$Model <- factor(rev_grouped_multi_mod_DMS$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
 
 # PABP doubles= largest, PABP_singles = smallest
-inc_order = c('PABP singles', 'RL401 2013', 'RL401 2014', 'IF1 ECOLI', 'TIM THETH', 'DLG4 RAT', 'RASH HUMAN', 'HSP82 YEAST', 'BLAT ECOLX 2015', 'PABP doubles')
+# inc_order = c('PABP singles', 'RL401 2013', 'RL401 2014', 'IF1 ECOLI', 'TIM THETH', 'DLG4 RAT', 'RASH HUMAN', 'HSP82 YEAST', 'BLAT ECOLX 2015', 'PABP doubles')
 
-mean_grouped_150M_650M_15B$Dataset <- factor(mean_grouped_150M_650M_15B$Dataset, levels = inc_order)  
+# mean_grouped_150M_650M_15B$Dataset <- factor(mean_grouped_150M_650M_15B$Dataset, levels = inc_order)  
 
-  
 
-color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
 
-DMS_barplot <- mean_grouped_150M_650M_15B %>%
+inc_order <- c("YAP1 singles", "BRCA1 RING", "UBE4B MOUSE",
+  "BLAT ECOLX 2013", "PABP singles", "GAL4 YEAST", "RL401 2013",
+  "RL401 2016", "RL401 2014", "IF1 ECOLI", "BRCA1 BRCT",
+  "TIM SULSO", "TIM THETH", "TIM THEMA", "DLG4 RAT",
+  "POLG HCVJF", "MTH3 HAEAESTABILIZED", "SUMO1 HUMAN",
+  "CALM1 HUMAN", "PA FLU", "UBC9 HUMAN", "RASH HUMAN",
+  "TPK1 HUMAN", "BG STRSQ", "TPMT HUMAN", "PTEN HUMAN",
+  "HSP82 YEAST", "BLAT ECOLX 2015", "KKA2 KLEPN",
+  "BLAT ECOLX 2012", "BLAT ECOLX 2014", "AMIE PSEAE",
+  "MK01 HUMAN", "B3VI55 LIPST", "B3VI55 LIPSTSTABLE",
+  "parEparD all", "HG FLU", "BF520 env", "BG505 env",
+  "PABP doubles")
+# "HIS7_YEAST_Kondrashov2017_esm2_150M"
+
+rev_grouped_multi_mod_DMS$Dataset <- factor(rev_grouped_multi_mod_DMS$Dataset, levels = inc_order)  
+
+
+
+color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+
+#color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
+```
+
+```{r}
+
+
+DMS_barplot <- rev_grouped_multi_mod_DMS %>%
   ggplot(aes(y = mean_score, 
          x = Dataset,
-         fill = param
+         fill = Model
          ))+
   geom_bar(stat = 'identity', 
            width = 0.7,
-           position = position_dodge(),
+           position = position_dodge(width = 0.85),
            alpha = 0.85) + 
   scale_fill_manual(values = color_dict)+
   geom_errorbar(aes(
                 ymin = mean_score - std_score, 
                 ymax = mean_score + std_score),
                 width = 0.3,
-                position = position_dodge(0.7)) + 
+                position = position_dodge(0.85)) + 
   coord_flip()+ 
   guides(fill = guide_legend(reverse = TRUE))+
   labs(x = "Dataset", 
@@ -1293,13 +1616,12 @@ DMS_barplot <- mean_grouped_150M_650M_15B %>%
          
 
 
-#ggsave(DMS_barplot, 
-#       filename = "DMS_barplot.png",
-#       path = here("figs"),
-#       width = 7,
-#       height = 10,
-#       dpi=600)
-   
+# ggsave(DMS_barplot, 
+#        filename = "DMS_barplot.png",
+#        path = here("figs"),
+#        width = 7.5,
+#        height = 11,
+#        dpi=600)
 
  
 DMS_barplot
@@ -1307,33 +1629,49 @@ DMS_barplot
 
 ```
 # Supplementary Figure 5
+
+```{r}
+rev_multi_mod_pisces <- grouped_multi_mod_pisces
+
+rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
+
+
+```
+
+
 ```{r}
 
-mean_pisces_150M_650M_15B <- pisces_150M_650M_15B %>%
-  filter(Compression_methd %in% c('mean'))
+# mean_pisces_150M_650M_15B <- pisces_150M_650M_15B %>%
+#   filter(Compression_methd %in% c('mean'))
 
-mean_pisces_150M_650M_15B$param <- factor(mean_pisces_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
+# mean_pisces_150M_650M_15B$param <- factor(mean_pisces_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
+rev_multi_mod_pisces <- grouped_multi_mod_pisces
+
+rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
 
 
-color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
+#color_dict <- c("esm2 15B" = '#254369','esm2 650M' = '#4292C6', "esm2 150M" = '#9ECAE1')
+
+color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
 
 
-pisces_barplot <- mean_pisces_150M_650M_15B %>%
+
+pisces_barplot <- rev_multi_mod_pisces %>%
 
   ggplot(aes(y = mean_score, 
          x = fct_reorder(Dataset, mean_score),
-         fill = param
+         fill = Model
          ))+
   geom_bar(stat = 'identity', 
            width = 0.7,
-           position = position_dodge(),
+           position = position_dodge(width = 0.85),
            alpha = 0.85) + 
   scale_fill_manual(values = color_dict)+
   geom_errorbar(aes(
                 ymin = mean_score - std_score, 
                 ymax = mean_score + std_score),
                 width = 0.3,
-                position = position_dodge(0.7)) + 
+                position = position_dodge(0.85)) + 
   coord_flip()+ 
   guides(fill = guide_legend(reverse = TRUE))+
   labs(x = "Dataset", 
@@ -1356,12 +1694,12 @@ pisces_barplot <- mean_pisces_150M_650M_15B %>%
          
 
 
-#ggsave(pisces_barplot, 
-#       filename = "pisces_barplot.png",
-#       path = here("figs"),
-#       width = 7,
-#       height = 10,
-#       dpi=600)
+# ggsave(pisces_barplot, 
+#        filename = "pisces_barplot.png",
+#        path = here("figs"),
+#        width = 7.5,
+#        height = 11,
+#        dpi=600)
    
 
  
