@@ -21,9 +21,14 @@ do
     for method in "${methods[@]}"
     do
         echo 'Running compression for method: ' $method
-        python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_8M/embed_layer_6_${method}.pkl" -m "data/metadata_pisces/metadata_pisces_${target}.csv" -o "results/lassoCV_pisces/${target}_esm2_8M_layer_6_${method}.csv"
-        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_150M/embed_layer_30_${method}.pkl" -m "data/metadata_pisces/metadata_pisces_${target}.csv" -o "results/lassoCV_pisces/${target}_esm2_150M_layer_30_${method}.csv"
-        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_650M/embed_layer_33_${method}.pkl" -m "data/metadata_pisces/metadata_pisces_${target}.csv" -o "results/lassoCV_pisces/${target}_esm2_650M_layer_33_${method}.csv"
-        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_15B/embed_layer_48_${method}.pkl" -m "data/metadata_pisces/metadata_pisces_${target}.csv" -o "results/lassoCV_pisces/${target}_esm2_15B_layer_48_${method}.csv"                                      
+        python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm1v_650M/embed_layer_33_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/esm1v_650M/${target}_esm1v_650M_${method}.csv"
+        python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_8M/embed_layer_6_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/esm2_8M/${target}_esm2_8M_${method}.csv"
+        python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_35M/embed_layer_12_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/esm2_35M/${target}_esm2_35M_${method}.csv"
+        python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_3B/embed_layer_36_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/esm2_3V/${target}_esm2_3V_${method}.csv"
+
+        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_150M/embed_layer_30_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/${target}_esm2_150M_layer_30_${method}.csv"
+        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_650M/embed_layer_33_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/${target}_esm2_650M_layer_33_${method}.csv"
+        #python scripts/run_reg_LassoCV.py -i "embeddings/PISCES_compressed/PISCES_esm2_15B/embed_layer_48_${method}.pkl" -m "data/PISCES/metadata_pisces_${target}.csv" -o "results/lassoCV_PISCES/${target}_esm2_15B_layer_48_${method}.csv"                
+        echo ' '                      
     done
 done

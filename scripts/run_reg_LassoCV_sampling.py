@@ -126,30 +126,25 @@ def run_regression_with_sampling(input_file_path, path_meta_data):
     '''Run regression on compressed embeddings'''
     results = pd.DataFrame()
     print('Reading the embeddings...')
-    embed_df = pd.read_csv(input_file_path)
-    embed_df.rename(columns={'Unnamed: 0': 'ID'}, inplace=True)
-
-    #embed = pd.read_pickle(input_file_path)
-    #embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
-    #embed_df = embed_df = pd.DataFrame(embed).T.reset_index()
-    #embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    embed_df = pd.read_pickle(input_file_path)
     
     sample_sizes = [32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000, 1000000]
-    for ss in sample_sizes: 
-        print('\nResults for sample size:', ss)
+    for idx, ss in enumerate(sample_sizes): 
         meta_data = pd.read_csv(path_meta_data)
         ss = min(ss, len(meta_data))
-        meta_data = meta_data.sample(n=ss, random_state=42)
-
-        data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
-        target = data['target']
-        features = data.iloc[:, meta_data.shape[1]:]
-        features = features_scaler(features)
-        # run regression
-        r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
-        res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
-        res['Sample_size'] = ss
-        results = pd.concat([results, res], axis=0)
+        if sample_sizes[idx] <= len(meta_data) or sample_sizes[idx-1] < len(meta_data) and sample_sizes[idx+1] > len(meta_data):
+            print('\nResults for sample size:', ss)
+            meta_data = meta_data.sample(n=ss, random_state=42)
+    
+            data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
+            target = data['target']
+            features = data.iloc[:, meta_data.shape[1]:]
+            features = features_scaler(features)
+            # run regression
+            r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
+            res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
+            res['Sample_size'] = ss
+            results = pd.concat([results, res], axis=0)
 
     return results
 
