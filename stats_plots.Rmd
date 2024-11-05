@@ -41,6 +41,7 @@ data$Dataset <- factor(data$Dataset)
 data$Fold <- factor(data$Fold)
 data
 ```
+
 ```{r}
 
 #data <- data %>%
@@ -258,7 +259,7 @@ final_plot
 
 
 
-# Sup 3A: DMS 150M/650M/15B Boxplot # NOT UPDATED
+# Sup 3A: DMS 150M/650M/15B Boxplot 
 
 ```{r}
 
@@ -368,7 +369,7 @@ boxplot_15B_150M
 
 # Figure 3A: DMS Viridis Gradient
 ```{r}
-multi_mod_DMS <- read.csv(here("results/summary_lassoCV_multi_model_DMS_all.csv"))
+multi_mod_DMS <- read.csv(here("results/summary_DMS_all_multi_model.csv"))
 
 
 multi_mod_DMS <- multi_mod_DMS %>%
@@ -464,14 +465,31 @@ gradient_plot
 gradient_plot
 
 ```
+# DMS multi boxplot 
+
+
 
 ```{r}
 #boxplot version xD
 # 
 # color_dict = c("esm1v 650M" = "#a1cded", "esm2 8M" = "#88b0d4", "esm2 35M" = "#7093bb", "esm2 150M" = "#5a78a3", "esm2 650M" = "#465d8a", "esm2 3B" = "#334371", "esm2 15B" = "#212b59")
-color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+#color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
 
 
+color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+
+#"#C6DBEF" "#9ECAE1" "#6BAED6" "#4292C6" "#2171B5" "#084594"
+
+#"#E1B49D"
+#"#E1BA9D"
+#"#E1BF9D"
+
+
+#"#D6A16B"
+
+#"#D6986B"
+
+#"#D68F6B"
 
 DMS_multi_boxplot <- grouped_multi_mod_DMS %>%
   #filter(Compression_method %in% c('mean')) %>%
@@ -482,7 +500,7 @@ DMS_multi_boxplot <- grouped_multi_mod_DMS %>%
     #color = mean_score
     fill = Model
     )) +
-    geom_boxplot()+
+    geom_boxplot(alpha = 0.85)+
     scale_fill_manual(values = color_dict)+
     labs(x = "", 
          y = expression(R^2), 
@@ -506,18 +524,21 @@ DMS_multi_boxplot <- grouped_multi_mod_DMS %>%
   
 DMS_multi_boxplot
  
-  # ggsave(DMS_multi_boxplot, 
-  #       filename = "DMS_multi_boxplot.png",
-  #        path = here('figs'),
-  #        width = 11,
-  #       #6
-  #        height = 4,
-  #       dpi=600)      
+   # ggsave(DMS_multi_boxplot, 
+   #       filename = "DMS_multi_boxplot.png",
+   #        path = here('figs'),
+   #        width = 11,
+   #       #6
+   #        height = 4,
+   #       dpi=600)      
 
 DMS_multi_boxplot
 
 
 ```
+
+
+
 
 
 
@@ -590,25 +611,128 @@ excluded_DMS_gradient_plot <- excluded_multi_mod_DMS %>%
   
 excluded_DMS_gradient_plot
 
- ggsave(excluded_DMS_gradient_plot, 
-       filename = "sup_excluded_DMS.png",
-        path = here('figs'),
-        width = 11,
-       #6
-        height = 4,
-        dpi=600)      
+ # ggsave(excluded_DMS_gradient_plot, 
+ #       filename = "sup_excluded_DMS.png",
+ #        path = here('figs'),
+ #        width = 11,
+ #       #6
+ #        height = 4,
+ #        dpi=600)      
 
 excluded_DMS_gradient_plot
 ```
 
+```{r}
+
+small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PSEAE", "TIM THEMA", "CALM1 HUMAN")
+
+small_multi_mod_DMS <- multi_mod_DMS %>%
+  filter(Dataset %in% small_data) %>%
+  filter(!Model %in% c("esm1v 650M")) %>%
+  group_by(Dataset, Model) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  ungroup()
+
+# need to make an order for the x axis
+small_multi_mod_DMS$Model <- factor(small_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+```
+```{r}
+
+small_DMS_gradient_plot <- small_multi_mod_DMS %>%
+  #filter(Compression_method %in% c('mean')) %>%
+  ggplot(aes(
+    x = Model, 
+    y = mean_score, 
+    group = Dataset, 
+    color = mean_score
+    )) +
+    geom_line() +
+    geom_point(shape = 21, 
+               size = 2,  
+               color = "black", 
+               aes(fill = mean_score), 
+               stroke = .2
+               ) + 
+    scale_color_viridis_c(begin = .2, 
+                          end =.8, 
+                          direction=-1) +
+    scale_fill_viridis_c(begin = .2, 
+                         end = .8, 
+                         direction = -1, guide = "none") +
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+small_DMS_gradient_plot
+
+  # ggsave(small_DMS_gradient_plot, 
+  #       filename = "small_DMS_gradient_plot.png",
+  #        path = here('figs'),
+  #        width = 12,
+  #       #6
+  #        height = 4,
+  #        dpi=600)      
+
+small_DMS_gradient_plot
+```
+
+```{r}
+gradient_plots <- plot_grid(excluded_DMS_gradient_plot, 
+                        small_DMS_gradient_plot,
+                        labels = c('A', 'B'), 
+                        label_size = 12, 
+                        rel_heights = c(1, 1),
+                        ncol = 1)
+
+ggsave(gradient_plots, 
+       filename = "sup_gradient_plots.png",
+       path = here("figs"),
+       width = 8,
+       height = 8,
+       dpi=600)
+
+gradient_plots
+
+```
+
+
+
+
 # Figure 5 #NOT UPDATED
 ```{r}
-# Fig 5
 
-data_with_size <- read.csv(here('results/lassoCV_DMS/summary_all_DMS_results_LassoCV_mean.csv'))
+
+```
+
+
+```{r}
+# Fig 5
+#'results/lassoCV_DMS/summary_all_DMS_results_LassoCV_mean.csv'
+data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 
 data_with_size <- data_with_size %>%
-  group_by(Dataset, param) %>%
+  group_by(Dataset, Model) %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
@@ -616,7 +740,19 @@ data_with_size <- data_with_size %>%
   ) %>%
   ungroup()
 
-data_with_size$param <- factor(data_with_size$param, levels = c("150M", "650M", "15B"))
+data_with_size <- data_with_size %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
 
 
 ```
@@ -919,112 +1055,11 @@ pisces_plot
 
 
 
-# Sup 3B: Pisces 150M/650M/15B boxplot #NOT UPDATED
-```{r}
-
-#exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
-
-pisces_15B <- read.csv(here('results/summary_results_pisces_esm2_15B_lassoCV.csv'))
-
-pisces_650M <- read.csv(here('results/summary_results_pisces_esm2_650M_lassoCV.csv'))
-
-
-methods = c('mean', 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'iDCT5', 'maxPool', 'pca1', 'pca2', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2')
-
-grouped_pisces <- pisces_data %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-
-grouped_pisces_15B <- pisces_15B %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-grouped_pisces_15B$param <- '15B'
-
-grouped_pisces$param <- '150M'
-
-grouped_pisces_650M <- pisces_650M %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-grouped_pisces_650M$param <- '650M'
-
-
-pic_150M_650M_15B <- rbind(grouped_pisces, grouped_pisces_650M, grouped_pisces_15B)
-
-pisces_150M_650M_15B <- pic_150M_650M_15B %>%
-  mutate(param = factor(param, levels = c("150M", "650M", "15B")))
-
-
-```
-
-
-
-```{r}
-
-color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
-
-pisces_boxplot <- pisces_150M_650M_15B %>%
- ggplot(aes(
-    x = reorder(Compression_methd, -mean_score), 
-    y = mean_score, 
-    fill = param)) +
-  geom_boxplot(alpha = 0.85) +
-  scale_fill_manual(values = color_dict) +
-  ylim(0, 1) +
-  labs(x = "Compression Method", y = expression(R^2), fill = "Model Size") +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
-
-        panel.background = element_rect(fill = "white", 
-                                        colour = "white"),
-        plot.background = element_rect(fill = "white", 
-                                       colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 0, 10))
-        
-  
-
-# ggsave(pisces_boxplot, 
-#        filename = "pisces_models_lassoCV.png",
-#        path = here("figs"),
-#        width = 12,
-#        height = 4,
-#        dpi=600)
-
-
-pisces_boxplot
-
-```
 
 
 # Figure 3B: Pisces Viridis Gradient
 ```{r}
-multi_mod_pisces <- read.csv(here("results/summary_lassoCV_multi_model_pisces_all.csv"))
+multi_mod_pisces <- read.csv(here("results/summary_PISCES_multi_model.csv"))
 
 multi_mod_pisces <- multi_mod_pisces %>%
   mutate(Dataset = case_when(
@@ -1074,7 +1109,6 @@ grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels 
 
 ```{r}
 
-
 gradient_pisces <- grouped_multi_mod_pisces %>%
   #filter(Compression_methd %in% c('mean')) %>%
   ggplot(aes(
@@ -1122,13 +1156,13 @@ gradient_pisces <- grouped_multi_mod_pisces %>%
   
 
 
-ggsave(gradient_pisces, 
-        filename = "gradient_pisces.png",
-        path = here('figs'),
-        width = 11,
+#ggsave(gradient_pisces, 
+#        filename = "gradient_pisces.png",
+#        path = here('figs'),
+#        width = 11,
        #6
-        height = 4,
-        dpi=600)      
+#        height = 4,
+#        dpi=600)      
 
 gradient_pisces
 
@@ -1140,15 +1174,71 @@ gradient_pisces
 
 
 
-# Figure 4: His7 sampling (DMS)
+
+# Pisces multiboxplot
 ```{r}
-his7_sampling <- read.csv(here('results/summary_lassoCV_HIS7_datasize_effect.csv'))
+
+#color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+
+color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+
+pisces_multi_boxplot <- grouped_multi_mod_pisces %>%
+  #filter(Compression_method %in% c('mean')) %>%
+  ggplot(aes(
+    x = Model, 
+    y = mean_score, 
+    #group = Dataset, 
+    #color = mean_score
+    fill = Model
+    )) +
+    geom_boxplot(alpha = .85)+
+    scale_fill_manual(values = color_dict)+
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+pisces_multi_boxplot
+ 
+# ggsave(pisces_multi_boxplot, 
+#       filename = "pisces_multi_boxplot.png",
+#        path = here('figs'),
+#        width = 11,
+#       #6
+#        height = 4,
+#       dpi=600)      
+
+pisces_multi_boxplot
+
+```
+
+
+
+# Figure 4: DMS 4 set (with His7) sampling (DMS) 
+```{r}
+DMS_sampling <- read.csv(here('results/summary_DMS4_sampling.csv'))
 
 ```
 
 ```{r}
-grouped_his7_sampling <- his7_sampling %>%
-  group_by(Sample_size, Model) %>%
+grouped_DMS_sampling <- DMS_sampling %>%
+  group_by(Dataset, Sample_size, Model) %>%
+  filter(!Sample_size %in% c(32)) %>%
   summarise(
     mean_R2_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_R2_score = sd(get('R2_score_test'), na.rm = TRUE),
@@ -1158,46 +1248,81 @@ grouped_his7_sampling <- his7_sampling %>%
   ) %>%
   ungroup()
 
-grouped_his7_sampling <- grouped_his7_sampling %>%
-  mutate(Model = factor(Model, levels = c("150M", "650M", "15B")))
+grouped_DMS_sampling <- grouped_DMS_sampling %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+grouped_DMS_sampling <- grouped_DMS_sampling %>%
+  mutate(Model = factor(Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B")))
+
+
+grouped_DMS_sampling <- grouped_DMS_sampling %>%
+  mutate(Dataset = case_when(
+    Dataset == "BLAT_ECOLX_2015" ~ "BLAT ECOLX 2015 (singles)",
+    Dataset == "PABP_doubles" ~ "PABP (doubles)",
+    Dataset == "parEparD_all" ~ "parEparD (1-4)",
+    Dataset == "HIS7_YEAST" ~ "HIS7 (1-28)"
+    )) %>%
+    mutate(Dataset = factor(Dataset, levels = c("BLAT ECOLX 2015 (singles)", "PABP (doubles)", "parEparD (1-4)", "HIS7 (1-28)"))) 
+    
+parepard_sample <- grouped_DMS_sampling %>%
+  filter(Dataset %in% c("parEparD (1-4)"))
+
+grouped_DMS_sampling <- grouped_DMS_sampling %>%
+  filter(!Dataset %in% c("parEparD (1-4)"))
+
+# change y range -1 to 1
 
 ```
 
 
 ```{r}
 
-color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
+#color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
+color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+
+
 #color_dict <- c("150M" = '#7C9ACB','650M' = '#375D8F', "15B" = '#254369')
 #08519C
 #4292C6
 #9ECAE1
 
 
-his7_sample_R2_plot <- grouped_his7_sampling %>%
+DMS_sample_R2_plot <- grouped_DMS_sampling %>%
   ggplot(aes(
       x = Sample_size, 
       y = mean_R2_score,
       color = Model
       )) +
-  scale_x_continuous(limits = c(92, NA),trans = scales::log_trans(),
+  scale_x_continuous(limits = c(95, 1000000),trans = scales::log_trans(),
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))
                        ) +
-  scale_y_continuous(limits = c(-.1, NA)) +
+  scale_y_continuous(limits = c(-.3, .8)) +
   geom_errorbar(aes(
       ymin = mean_R2_score - std_R2_score, 
       ymax = mean_R2_score + std_R2_score), 
       width = 0.1,
       alpha = 1,
-      position = position_dodge(width = .2)
+      #position = position_dodge(width = .2)
       ) +
-  geom_line(position = position_dodge(width = 0.2))+
-  geom_point(position = position_dodge(width = 0.2))+
+  geom_line(#position = position_dodge(width = 0.2)
+            )+
+  geom_point(#position = position_dodge(width = 0.2)
+             )+
   scale_color_manual(
     values = color_dict
     ) +
   
-  labs(x= "", 
+  labs(x= "Sample Size", 
     y = expression(R^2), fill = ""
        ) +
   theme_minimal_grid(12, rel_small = 1)+
@@ -1209,26 +1334,96 @@ his7_sample_R2_plot <- grouped_his7_sampling %>%
 
         panel.border = element_rect(color = "black", 
                                     fill = NA, 
-                                    size = .5),
+                                   size = .5),
+      
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(0, 10, 0, 10))+
+  facet_wrap(~ Dataset, ncol = 1, scales = "free"
+             )
+        
+
+
+  ggsave(DMS_sample_R2_plot, 
+         filename = "DMS_sample_R2_plot.png",
+         path = here("figs"),
+         width = 6.75,
+        height = 8,
+         dpi=600)
+
+
+#DMS_sample_R2_plot + facet_grid(cols = vars(Dataset))
+DMS_sample_R2_plot
+
+
+```
+
+```{r}
+
+supp_parepard_sample_R2_plot <- parepard_sample %>%
+  ggplot(aes(
+      x = Sample_size, 
+      y = mean_R2_score,
+      color = Model
+      )) +
+  scale_x_continuous(limits = c(95, NA),trans = scales::log_trans(),
+                     breaks = scales::log_breaks(),
+                     labels = trans_format("log10", math_format(10^.x))
+                       ) +
+  scale_y_continuous(limits = c(-1.75, 1)) +
+  geom_errorbar(aes(
+      ymin = mean_R2_score - std_R2_score, 
+      ymax = mean_R2_score + std_R2_score), 
+      width = 0.1,
+      alpha = 1,
+      #position = position_dodge(width = .2)
+      ) +
+  geom_line(#position = position_dodge(width = 0.2)
+            )+
+  geom_point(#position = position_dodge(width = 0.2)
+             )+
+  scale_color_manual(
+    values = color_dict
+    ) +
+  
+  labs(title = "parEparD (1-4)", x= "Sample Size", 
+    y = expression(R^2), fill = ""
+       ) +
+  theme_minimal_grid(12, rel_small = 1)+
+  theme(
+        legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                   size = .5),
+      
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
         plot.margin = margin(0, 10, 0, 10))
-        
-  
-  
-
-#ggsave(his7_sample_R2_plot, 
-#       filename = "his7_sample_R2_plot.png",
-#       path = here("figs"),
-#       width = 8,
-#       height = 5,
-#       dpi=600)
 
 
-his7_sample_R2_plot
+
+
+  ggsave(supp_parepard_sample_R2_plot, 
+         filename = "supp_parepard_sample_R2_plot.png",
+         path = here("figs"),
+         width = 6.75,
+        height = 5,
+         dpi=600)
+
+supp_parepard_sample_R2_plot
+
 
 ```
+
+
+
+
 
 ```{r}
 
@@ -1521,10 +1716,15 @@ final_methods_pisces
 ```
 
 
-# Supplementary Figure 4 #NOT UPDATED
+# Supplementary Figure 4 
 ```{r}
+
+inc_order=c("BLAT ECOLX 2014", "BRCA1 RING", "IF1 ECOLI", "RL401 2016", "DLG4 RAT", "TIM THETH", "RL401 2013", "RASH HUMAN", "RL401 2014", "YAP1 singles", "HSP82 YEAST", "PABP singles", "BLAT ECOLX 2015", "PABP doubles", "parEparD all")
+
+
 rev_grouped_multi_mod_DMS <- multi_mod_DMS %>%
   group_by(Dataset, Model) %>%
+  filter(Dataset %in% inc_order) %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
@@ -1532,7 +1732,7 @@ rev_grouped_multi_mod_DMS <- multi_mod_DMS %>%
   ) %>%
   ungroup()
 
-c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+#c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
 
 
 rev_grouped_multi_mod_DMS <- rev_grouped_multi_mod_DMS %>%
@@ -1544,34 +1744,14 @@ rev_grouped_multi_mod_DMS <- rev_grouped_multi_mod_DMS %>%
 ))
 
 
+
 rev_grouped_multi_mod_DMS$Model <- factor(rev_grouped_multi_mod_DMS$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
 
-# PABP doubles= largest, PABP_singles = smallest
-# inc_order = c('PABP singles', 'RL401 2013', 'RL401 2014', 'IF1 ECOLI', 'TIM THETH', 'DLG4 RAT', 'RASH HUMAN', 'HSP82 YEAST', 'BLAT ECOLX 2015', 'PABP doubles')
-
-# mean_grouped_150M_650M_15B$Dataset <- factor(mean_grouped_150M_650M_15B$Dataset, levels = inc_order)  
+rev_grouped_multi_mod_DMS$Dataset <- factor(rev_grouped_multi_mod_DMS$Dataset, levels = inc_order)
 
 
 
-inc_order <- c("YAP1 singles", "BRCA1 RING", "UBE4B MOUSE",
-  "BLAT ECOLX 2013", "PABP singles", "GAL4 YEAST", "RL401 2013",
-  "RL401 2016", "RL401 2014", "IF1 ECOLI", "BRCA1 BRCT",
-  "TIM SULSO", "TIM THETH", "TIM THEMA", "DLG4 RAT",
-  "POLG HCVJF", "MTH3 HAEAESTABILIZED", "SUMO1 HUMAN",
-  "CALM1 HUMAN", "PA FLU", "UBC9 HUMAN", "RASH HUMAN",
-  "TPK1 HUMAN", "BG STRSQ", "TPMT HUMAN", "PTEN HUMAN",
-  "HSP82 YEAST", "BLAT ECOLX 2015", "KKA2 KLEPN",
-  "BLAT ECOLX 2012", "BLAT ECOLX 2014", "AMIE PSEAE",
-  "MK01 HUMAN", "B3VI55 LIPST", "B3VI55 LIPSTSTABLE",
-  "parEparD all", "HG FLU", "BF520 env", "BG505 env",
-  "PABP doubles")
-# "HIS7_YEAST_Kondrashov2017_esm2_150M"
-
-rev_grouped_multi_mod_DMS$Dataset <- factor(rev_grouped_multi_mod_DMS$Dataset, levels = inc_order)  
-
-
-
-color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
 
 #color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
 ```
@@ -1616,18 +1796,20 @@ DMS_barplot <- rev_grouped_multi_mod_DMS %>%
          
 
 
-# ggsave(DMS_barplot, 
-#        filename = "DMS_barplot.png",
-#        path = here("figs"),
-#        width = 7.5,
-#        height = 11,
-#        dpi=600)
+  # ggsave(DMS_barplot, 
+  #        filename = "DMS_barplot.png",
+  #        path = here("figs"),
+  #        width = 8,
+  #        height = 11,
+  #        dpi=600)
 
  
 DMS_barplot
          
 
 ```
+
+
 # Supplementary Figure 5
 
 ```{r}
@@ -1652,7 +1834,7 @@ rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm
 
 #color_dict <- c("esm2 15B" = '#254369','esm2 650M' = '#4292C6', "esm2 150M" = '#9ECAE1')
 
-color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
+color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
 
 
 
@@ -1694,18 +1876,39 @@ pisces_barplot <- rev_multi_mod_pisces %>%
          
 
 
-# ggsave(pisces_barplot, 
-#        filename = "pisces_barplot.png",
-#        path = here("figs"),
-#        width = 7.5,
-#        height = 11,
-#        dpi=600)
+  # ggsave(pisces_barplot, 
+  #        filename = "pisces_barplot.png",
+  #        path = here("figs"),
+  #        width = 8,
+  #        height = 11,
+  #        dpi=600)
    
 
  
 pisces_barplot
 ```
 
+
+
+
+
+# Fig 3A multimod assembly
+```{r}
+fig3_multi_mod <- plot_grid(DMS_multi_boxplot, 
+                            pisces_multi_boxplot, 
+                            labels = c('A', 'B'), 
+                            ncol = 1, 
+                            rel_heights = c(1.1, 1))
+
+ggsave(fig3_multi_mod, 
+       filename = "fig3_multi_mod.png",
+       path = here("figs"),
+       width = 12,
+       height = 8,
+       dpi=600)
+
+fig3_multi_mod
+```
 
 
 
