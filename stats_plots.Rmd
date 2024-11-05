@@ -19,6 +19,7 @@ library(viridis)
 library(cowplot)
 library(scales)
 
+
 ```
 
 
@@ -27,7 +28,8 @@ library(scales)
 # DMS Data preprocessing
 ```{r}
 #data <- read.csv(here("results/summary_results_DMS_esm2_150M_lassoCV.csv"))
-data <- read.csv(here("results/summary_DMS_all_LassoCV_esm2_150M_all_methods.csv"))
+#data <- read.csv(here("results/summary_DMS_all_LassoCV_esm2_150M_all_methods.csv"))
+data <- read.csv(here('results/summary_DMS_all_esm2_150M_all_methods.csv'))
 data <- dplyr::select(data, Dataset, Compression_method, Fold, R2_score_test, rho_score_test)
 #data <- filter(data, Dataset != "HIS7 YEAST")
 #data <- filter(data, Compression_methd != "pca1-2")
@@ -544,27 +546,96 @@ DMS_multi_boxplot
 
 
 # Supp Excluded DMS MultiMod
+
+
 ```{r}
+data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 
-exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
-  
-#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
-#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
-
-excluded_multi_mod_DMS <- multi_mod_DMS %>%
-  filter(Dataset %in% exclude_data) %>%
+data_with_size <- data_with_size %>%
   group_by(Dataset, Model) %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
-   
+    dataset_size = median(get('dataset_size')),
+    group = unique(group)[1],
+    prot_length = median(get('prot_length'))
   ) %>%
   ungroup()
 
-# need to make an order for the x axis
-excluded_multi_mod_DMS$Model <- factor(excluded_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+data_with_size <- data_with_size %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
 
 ```
+
+
+```{r}
+
+#exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+  
+exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014", "BG505 env")
+#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
+#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
+
+# excluded_multi_mod_DMS <- data_with_size %>%
+#   filter(Dataset %in% exclude_data) %>%
+#   group_by(Dataset, Model) %>%
+#   summarise(
+#     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+#     std_score = sd(get('R2_score_test'), na.rm = TRUE),
+#    
+#   ) %>%
+#   ungroup()
+
+
+
+
+# need to make an order for the x axis
+#excluded_multi_mod_DMS$Model <- factor(excluded_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+
+excluded_multi_mod_DMS <- data_with_size %>%
+   filter(Dataset %in% exclude_data) %>%
+   ungroup()
+
+max_len = max(excluded_multi_mod_DMS$prot_length)
+
+```
+
+```{r}
+
+small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PSEAE", "TIM THEMA", "CALM1 HUMAN")
+
+small_multi_mod_DMS <- data_with_size %>%
+  filter(Dataset %in% small_data) %>%
+  filter(!Model %in% c("esm1v 650M")) %>%
+  #group_by(Dataset, Model) %>%
+  #summarise(
+   # mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+   # std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  #) %>%
+  ungroup()
+
+# need to make an order for the x axis
+#small_multi_mod_DMS$Model <- factor(small_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+
+min_len = min(small_multi_mod_DMS$prot_length)
+
+```
+
+
+
 
 ```{r}
 
@@ -574,21 +645,26 @@ excluded_DMS_gradient_plot <- excluded_multi_mod_DMS %>%
     x = Model, 
     y = mean_score, 
     group = Dataset, 
-    color = mean_score
+    color = prot_length
+    #mean_score
     )) +
     geom_line() +
+  scale_y_continuous(limit = c(0, 0.63)) +
     geom_point(shape = 21, 
                size = 2,  
                color = "black", 
-               aes(fill = mean_score), 
+               aes(fill = prot_length), # mean_score 
                stroke = .2
                ) + 
-    scale_color_viridis_c(begin = .2, 
+    scale_color_viridis_c(name = "Protein Length",
+                          begin = .2, 
                           end =.8, 
-                          direction=-1) +
+                          direction=-1,
+                          limit = c(min_len, max_len)) +
     scale_fill_viridis_c(begin = .2, 
                          end = .8, 
-                         direction = -1, guide = "none") +
+                         direction = -1, guide = "none",
+                          limit = c(min_len, max_len)) +
     labs(x = "", 
          y = expression(R^2), 
          #title = ""
@@ -622,25 +698,10 @@ excluded_DMS_gradient_plot
 excluded_DMS_gradient_plot
 ```
 
-```{r}
 
-small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PSEAE", "TIM THEMA", "CALM1 HUMAN")
 
-small_multi_mod_DMS <- multi_mod_DMS %>%
-  filter(Dataset %in% small_data) %>%
-  filter(!Model %in% c("esm1v 650M")) %>%
-  group_by(Dataset, Model) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE),
-   
-  ) %>%
-  ungroup()
 
-# need to make an order for the x axis
-small_multi_mod_DMS$Model <- factor(small_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
 
-```
 ```{r}
 
 small_DMS_gradient_plot <- small_multi_mod_DMS %>%
@@ -649,21 +710,26 @@ small_DMS_gradient_plot <- small_multi_mod_DMS %>%
     x = Model, 
     y = mean_score, 
     group = Dataset, 
-    color = mean_score
+    color = prot_length, #mean_score
     )) +
+  scale_y_continuous(limit = c(0, 0.63)) +
     geom_line() +
     geom_point(shape = 21, 
                size = 2,  
                color = "black", 
-               aes(fill = mean_score), 
+               aes(fill = prot_length), #mean_score
                stroke = .2
                ) + 
-    scale_color_viridis_c(begin = .2, 
+    scale_color_viridis_c(name = "Protein Length",
+                          begin = .2, 
                           end =.8, 
-                          direction=-1) +
+                          direction=-1,
+                          limit = c(min_len, max_len)) +
     scale_fill_viridis_c(begin = .2, 
                          end = .8, 
-                         direction = -1, guide = "none") +
+                         direction = -1, 
+                         guide = "none",
+                          limit = c(min_len, max_len)) +
     labs(x = "", 
          y = expression(R^2), 
          #title = ""
@@ -705,10 +771,10 @@ gradient_plots <- plot_grid(excluded_DMS_gradient_plot,
                         rel_heights = c(1, 1),
                         ncol = 1)
 
-ggsave(gradient_plots, 
-       filename = "sup_gradient_plots.png",
+ggsave(gradient_plots,
+       filename = "sup_gradient_plots_prot_length.png",
        path = here("figs"),
-       width = 8,
+       width = 9,
        height = 8,
        dpi=600)
 
@@ -720,15 +786,12 @@ gradient_plots
 
 
 # Figure 5 #NOT UPDATED
-```{r}
-
-
-```
 
 
 ```{r}
 # Fig 5
 #'results/lassoCV_DMS/summary_all_DMS_results_LassoCV_mean.csv'
+#data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 
 data_with_size <- data_with_size %>%
@@ -736,7 +799,9 @@ data_with_size <- data_with_size %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
-    datse_size = median(get('datse_size'))
+    dataset_size = median(get('dataset_size')),
+    group = unique(group)[1],
+    prot_length = median(get('prot_length'))
   ) %>%
   ungroup()
 
@@ -756,6 +821,13 @@ data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'e
 
 
 ```
+```{r}
+exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+
+
+```
+
+
 
 ```{r}
 
@@ -768,12 +840,17 @@ data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'e
              #color = "black"
   #)
 
+# ESM2 8M
+model_150M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "150M")
+slope_150M <- coef(model_150M)[2]
+r_squared_150M <- summary(model_150M)$r.squared
+label_150M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_150M), 2)), 
+                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_150M), 2)) ~ "     "))
+
 
 model_150M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "150M")
 slope_150M <- coef(model_150M)[2]
 r_squared_150M <- summary(model_150M)$r.squared
-
-
 label_150M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_150M), 2)), 
                             R^2 ~ ":" ~ .(round(as.numeric(r_squared_150M), 2)) ~ "     "))
 
@@ -781,8 +858,6 @@ label_150M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_150M), 2)),
 model_650M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "650M")
 slope_650M <- coef(model_650M)[2]
 r_squared_650M <- summary(model_650M)$r.squared
-
-
 label_650M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_650M), 2)), 
                             R^2 ~ ":" ~ .(round(as.numeric(r_squared_650M), 2)) ~ "   "))
 
@@ -1236,6 +1311,14 @@ DMS_sampling <- read.csv(here('results/summary_DMS4_sampling.csv'))
 ```
 
 ```{r}
+
+# dataset_labels <- c(
+#   "BLAT ECOLX 2015 (singles)" = "A",
+#   "PABP (doubles)" = "B",
+#   "parEparD (1-4)" = "C",
+#   "HIS7 (1-28)" = "C"
+# )
+
 grouped_DMS_sampling <- DMS_sampling %>%
   group_by(Dataset, Sample_size, Model) %>%
   filter(!Sample_size %in% c(32)) %>%
@@ -1279,7 +1362,8 @@ parepard_sample <- grouped_DMS_sampling %>%
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
   filter(!Dataset %in% c("parEparD (1-4)"))
 
-# change y range -1 to 1
+# grouped_DMS_sampling <- grouped_DMS_sampling %>%
+#   mutate(label = dataset_labels[Dataset])
 
 ```
 
@@ -1341,8 +1425,11 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
         axis.ticks.y = element_line(color = "black"),
         plot.margin = margin(0, 10, 0, 10))+
   facet_wrap(~ Dataset, ncol = 1, scales = "free"
-             )
-        
+              ) #+
+  # geom_text(data = grouped_DMS_sampling, aes(x = 95, y = .8, label = label),
+  #           inherit.aes = FALSE,
+  #           hjust = 1.1, vjust = 1.1,
+  #           size = 6, fontface = "bold", color = "black")
 
 
   ggsave(DMS_sample_R2_plot, 
@@ -1404,17 +1491,18 @@ supp_parepard_sample_R2_plot <- parepard_sample %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))
+        plot.margin = margin(0, 10, 0, 10))+
+  
 
 
 
 
-  ggsave(supp_parepard_sample_R2_plot, 
-         filename = "supp_parepard_sample_R2_plot.png",
-         path = here("figs"),
-         width = 6.75,
-        height = 5,
-         dpi=600)
+  # ggsave(supp_parepard_sample_R2_plot, 
+  #        filename = "supp_parepard_sample_R2_plot.png",
+  #        path = here("figs"),
+  #        width = 6.75,
+  #       height = 5,
+  #        dpi=600)
 
 supp_parepard_sample_R2_plot
 
@@ -1427,26 +1515,29 @@ supp_parepard_sample_R2_plot
 
 ```{r}
 
-his7_sample_coeff_plot <- grouped_his7_sampling %>%
+sample_coeff_plot <- grouped_DMS_sampling %>%
   ggplot(aes(
       x = Sample_size, 
       y = mean_coeff_score,
       color = Model
       )) +
-  scale_x_continuous(limits = c(92, NA), trans = scales::log_trans(),
+  scale_x_continuous(limits = c(95, 1000000), trans = scales::log_trans(),
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))
                        ) +
+  scale_y_continuous(limits =c(0, 1350)) +
   #scale_y_continuous(limits = c(NA, 1500)) +
   geom_errorbar(aes(
       ymin = mean_coeff_score - std_coeff_score, 
       ymax = mean_coeff_score + std_coeff_score), 
       width = 0.1,
       alpha = 1,
-      position = position_dodge(width = .2)
+      #position = position_dodge(width = .2)
       ) +
-  geom_line(position = position_dodge(width = 0.2))+
-  geom_point(position = position_dodge(width = 0.2))+
+  geom_line(#position = position_dodge(width = 0.2)
+            )+
+  geom_point(#position = position_dodge(width = 0.2)
+             )+
   scale_color_manual(
     values = color_dict
     ) +
@@ -1456,7 +1547,7 @@ his7_sample_coeff_plot <- grouped_his7_sampling %>%
        ) +
   theme_minimal_grid(12, rel_small = 1)+
   theme(
-        legend.position = "none",
+        legend.position = "top",
         panel.background = element_rect(fill = "white", colour = "white"),
         plot.background = element_rect(fill = "white", colour = "white"),
       
@@ -1467,39 +1558,41 @@ his7_sample_coeff_plot <- grouped_his7_sampling %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))
+        plot.margin = margin(0, 10, 0, 10))+
+   facet_wrap(~ Dataset, ncol = 1, scales = "free"
+              )
         
   
   
 
-#ggsave(his7_sample_coeff_plot, 
-#       filename = "his7_sample_coeff_plot.png",
-#       path = here("figs"),
-#       width = 8,
-#       height = 5,
-#       dpi=600)
+ggsave(sample_coeff_plot, 
+       filename = "sample_coeff_plot.png",
+       path = here("figs"),
+       width = 6.75,
+        height = 8,
+       dpi=600)
 
 
-his7_sample_coeff_plot
+sample_coeff_plot
 
 ```
 
 ```{r}
-his7_sample_plot <- plot_grid(his7_sample_R2_plot, 
-                        his7_sample_coeff_plot,
+sampling_plots <- plot_grid(DMS_sample_R2_plot, 
+                       sample_coeff_plot,
                         labels = c('A', 'B'), 
                         label_size = 12, 
-                        rel_heights = c(1.1, 1),
-                        ncol = 1)
+                        rel_widths = c(1, 1),
+                        nrow = 1)
 
-# ggsave(his7_sample_plot, 
-#        filename = "his7_sample_plot.png",
+# ggsave(sampling_plots,
+#        filename = "sampling_plots.png",
 #        path = here("figs"),
-#        width = 7,
-#        height = 6,
+#        width = 13.5,
+#        height = 8,
 #        dpi=600)
 
-his7_sample_plot
+sampling_plots
 
 ```
 
