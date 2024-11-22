@@ -15,11 +15,14 @@ library(tidyverse)
 library(multcomp)
 library(broom)
 library(viridis)
+library(Matrix)
 # for later plotting
 library(cowplot)
 library(scales)
 
+
 ```
+
 
 
 
@@ -27,7 +30,8 @@ library(scales)
 # DMS Data preprocessing
 ```{r}
 #data <- read.csv(here("results/summary_results_DMS_esm2_150M_lassoCV.csv"))
-data <- read.csv(here("results/summary_DMS_all_LassoCV_esm2_150M_all_methods.csv"))
+#data <- read.csv(here("results/summary_DMS_all_LassoCV_esm2_150M_all_methods.csv"))
+data <- read.csv(here('results/summary_DMS_all_esm2_150M_all_methods.csv'))
 data <- dplyr::select(data, Dataset, Compression_method, Fold, R2_score_test, rho_score_test)
 #data <- filter(data, Dataset != "HIS7 YEAST")
 #data <- filter(data, Compression_methd != "pca1-2")
@@ -114,6 +118,15 @@ model <- lmer(R2_score_test ~ Compression_method + (1 | Dataset) + (1|Fold), dat
 ########model <- lmer(rho_score_test ~ Compression_methd + (1 | Dataset) + (1|Fold), data=data)
 #model <- lmer(rho_score_test ~ Compression_methd + (1 | Dataset), data=data)
 summary(model)
+
+
+
+# if you get this error:
+# Error in initializePtr() : 
+#  function 'chm_factor_ldetL2' not provided by package 'Matrix'
+
+#visit: https://www.bioconductor.org/packages/release/bioc/vignettes/dreamlet/inst/doc/errors.html
+# look at 'Errors with random effects' section
 ```
 
 
@@ -259,117 +272,10 @@ final_plot
 
 
 
-# Sup 3A: DMS 150M/650M/15B Boxplot 
-
-```{r}
-
-data_15B <- read.csv(here('results/summary_DMS_15B_lassoCV.csv'))
-
-data_650M <- read.csv(here('results/summary_DMS_650M_lassoCV.csv'))
-
-methods = c('mean', 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'iDCT5', 'maxPool', 'pca1', 'pca2', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2')
-
-datasets_small = c('BLAT ECOLX 2015', 'PABP doubles', 'TIM THETH', 'PABP singles', 'RL401 2014', 'DLG4 RAT', 'HSP82 YEAST', 'IF1 ECOLI', 'RASH HUMAN', 'RL401 2013')
-
-grouped_150M <- data %>%
-  filter(Compression_methd %in% methods) %>%
-  filter(Dataset %in% datasets_small) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-
-grouped_150M$param <- '150M'
-
-grouped_15B <- data_15B %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-
-grouped_15B$param <- '15B'
-
-
-
-grouped_650M <- data_650M %>%
-  filter(Compression_methd %in% methods) %>%
-  group_by(Dataset, Compression_methd) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-grouped_650M$param <- '650M'
-
-
-combined_150M_650M_15B <- rbind(grouped_150M, grouped_650M, grouped_15B)
-
-grouped_150M_650M_15B <- combined_150M_650M_15B %>%
-  mutate(param = factor(param, levels = c("150M", "650M", "15B")))
-
-```
-
-
-```{r, fig.width=3, fig.height=3, out.width = 100%, out.height = 100%}
-
-color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
-
-boxplot_15B_150M <- grouped_150M_650M_15B %>%
-  ggplot(aes(
-    x = reorder(Compression_methd, -mean_score), 
-    y = mean_score, 
-    fill = param)) +
-  geom_boxplot(alpha = 0.85) +
-  scale_fill_manual(
-    values = color_dict
-    ) +
-  ylim(0, 1) +
-  labs(x = "", 
-       y = expression(R^2), 
-       fill = ""
-       ) +
-  theme_minimal_hgrid(12, rel_small = 1)+
-  theme(
-        legend.position = "top",
-        panel.background = element_rect(fill = "white", 
-                                        colour = "white"),
-        plot.background = element_rect(fill = "white", 
-                                       colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))
-        
-  
-
-# ggsave(boxplot_15B_150M, 
-#        filename = "model_compare_lassoCV.png",
-#        path = here('figs'),
-#        width = 12,
-#        height = 4,
-#        dpi=600)
-
-
-boxplot_15B_150M
-
-```
-
-# Figure 3A: DMS Viridis Gradient
+# Fig 3A DMS multi boxplot 
 ```{r}
 multi_mod_DMS <- read.csv(here("results/summary_DMS_all_multi_model.csv"))
+
 
 
 multi_mod_DMS <- multi_mod_DMS %>%
@@ -406,66 +312,6 @@ grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("e
 
 
 ```
-
-
-```{r}
-#grouped_150M_650M_15B
-
-gradient_plot <- grouped_multi_mod_DMS %>%
-  #filter(Compression_method %in% c('mean')) %>%
-  ggplot(aes(
-    x = Model, 
-    y = mean_score, 
-    group = Dataset, 
-    color = mean_score
-    )) +
-    geom_line() +
-    geom_point(shape = 21, 
-               size = 2,  
-               color = "black", 
-               aes(fill = mean_score), 
-               stroke = .2
-               ) + 
-    scale_color_viridis_c(begin = .2, 
-                          end =.8, 
-                          direction=-1) +
-    scale_fill_viridis_c(begin = .2, 
-                         end = .8, 
-                         direction = -1, guide = "none") +
-    labs(x = "", 
-         y = expression(R^2), 
-         #title = ""
-         color = ""
-         ) +
-    theme_minimal_hgrid(12, rel_small = 1)+
-    theme(
-        #legend.position = "top",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 0, 10))
-  
-gradient_plot
-
- # ggsave(gradient_plot, 
- #       filename = "gradient_plot.png",
- #        path = here('figs'),
- #        width = 11,
- #       #6
- #        height = 4,
- #        dpi=600)      
-
-gradient_plot
-
-```
-# DMS multi boxplot 
 
 
 
@@ -543,28 +389,75 @@ DMS_multi_boxplot
 
 
 
-# Supp Excluded DMS MultiMod
+# Supp 3 Excluded DMS MultiMod
+
+
 ```{r}
+data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 
-exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
-  
-#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
-#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
-
-excluded_multi_mod_DMS <- multi_mod_DMS %>%
-  filter(Dataset %in% exclude_data) %>%
+data_with_size <- data_with_size %>%
   group_by(Dataset, Model) %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
-   
+    dataset_size = median(get('dataset_size')),
+    group = unique(group)[1],
+    prot_length = median(get('prot_length'))
   ) %>%
   ungroup()
 
-# need to make an order for the x axis
-excluded_multi_mod_DMS$Model <- factor(excluded_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+data_with_size <- data_with_size %>%
+  mutate(Model = case_when(
+    Model == "esm1v_650M" ~ "esm1v 650M",
+    Model == "esm2_8M" ~ "esm2 8M",
+    Model == "esm2_35M" ~ "esm2 35M",
+    Model == "esm2_150M_all" ~ "esm2 150M",
+    Model == "esm2_150M" ~ "esm2 150M",
+    Model == "esm2_650M" ~ "esm2 650M",
+    Model == "esm2_3B" ~ "esm2 3B",
+    Model == "esm2_15B" ~ "esm2 15B"
+  ))
+
+data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
 
 ```
+
+
+```{r}
+
+#exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+  
+exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014", "BG505 env")
+#  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
+#    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
+
+
+excluded_multi_mod_DMS <- data_with_size %>%
+   filter(Dataset %in% exclude_data) %>%
+   ungroup()
+
+max_len = max(excluded_multi_mod_DMS$prot_length)
+
+```
+
+```{r}
+
+small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PSEAE", "TIM THEMA", "CALM1 HUMAN")
+
+small_multi_mod_DMS <- data_with_size %>%
+  filter(Dataset %in% small_data) %>%
+  filter(!Model %in% c("esm1v 650M")) %>%
+
+  ungroup()
+
+
+
+min_len = min(small_multi_mod_DMS$prot_length)
+
+```
+
+
+
 
 ```{r}
 
@@ -574,21 +467,26 @@ excluded_DMS_gradient_plot <- excluded_multi_mod_DMS %>%
     x = Model, 
     y = mean_score, 
     group = Dataset, 
-    color = mean_score
+    color = prot_length
+    #mean_score
     )) +
     geom_line() +
+  scale_y_continuous(limit = c(0, 0.63)) +
     geom_point(shape = 21, 
                size = 2,  
                color = "black", 
-               aes(fill = mean_score), 
+               aes(fill = prot_length), # mean_score 
                stroke = .2
                ) + 
-    scale_color_viridis_c(begin = .2, 
-                          end =.8, 
-                          direction=-1) +
-    scale_fill_viridis_c(begin = .2, 
-                         end = .8, 
-                         direction = -1, guide = "none") +
+    scale_color_viridis_c(name = "Protein Length",
+                          #begin = .1, 
+                          #end =1, 
+                          direction=-1,
+                          limit = c(min_len, max_len)) +
+    scale_fill_viridis_c(#begin = .1, 
+                         #end = 1, 
+                         direction = -1, guide = "none",
+                          limit = c(min_len, max_len)) +
     labs(x = "", 
          y = expression(R^2), 
          #title = ""
@@ -622,25 +520,10 @@ excluded_DMS_gradient_plot
 excluded_DMS_gradient_plot
 ```
 
-```{r}
 
-small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PSEAE", "TIM THEMA", "CALM1 HUMAN")
 
-small_multi_mod_DMS <- multi_mod_DMS %>%
-  filter(Dataset %in% small_data) %>%
-  filter(!Model %in% c("esm1v 650M")) %>%
-  group_by(Dataset, Model) %>%
-  summarise(
-    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-    std_score = sd(get('R2_score_test'), na.rm = TRUE),
-   
-  ) %>%
-  ungroup()
 
-# need to make an order for the x axis
-small_multi_mod_DMS$Model <- factor(small_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
 
-```
 ```{r}
 
 small_DMS_gradient_plot <- small_multi_mod_DMS %>%
@@ -649,21 +532,26 @@ small_DMS_gradient_plot <- small_multi_mod_DMS %>%
     x = Model, 
     y = mean_score, 
     group = Dataset, 
-    color = mean_score
+    color = prot_length, #mean_score
     )) +
+  scale_y_continuous(limit = c(0, 0.63)) +
     geom_line() +
     geom_point(shape = 21, 
                size = 2,  
                color = "black", 
-               aes(fill = mean_score), 
+               aes(fill = prot_length), #mean_score
                stroke = .2
                ) + 
-    scale_color_viridis_c(begin = .2, 
-                          end =.8, 
-                          direction=-1) +
-    scale_fill_viridis_c(begin = .2, 
-                         end = .8, 
-                         direction = -1, guide = "none") +
+    scale_color_viridis_c(name = "Protein Length",
+                          #begin = .1, 
+                          #end =1, 
+                          direction=-1,
+                          limit = c(min_len, max_len)) +
+    scale_fill_viridis_c(#begin = .1, 
+                         #end = 1, 
+                         direction = -1, 
+                         guide = "none",
+                          limit = c(min_len, max_len)) +
     labs(x = "", 
          y = expression(R^2), 
          #title = ""
@@ -705,10 +593,10 @@ gradient_plots <- plot_grid(excluded_DMS_gradient_plot,
                         rel_heights = c(1, 1),
                         ncol = 1)
 
-ggsave(gradient_plots, 
-       filename = "sup_gradient_plots.png",
+ggsave(gradient_plots,
+       filename = "sup_gradient_plots_prot_length.png",
        path = here("figs"),
-       width = 8,
+       width = 9,
        height = 8,
        dpi=600)
 
@@ -719,16 +607,11 @@ gradient_plots
 
 
 
-# Figure 5 #NOT UPDATED
-```{r}
-
-
-```
+# Figure 5, sup 8,9
 
 
 ```{r}
-# Fig 5
-#'results/lassoCV_DMS/summary_all_DMS_results_LassoCV_mean.csv'
+
 data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
 
 data_with_size <- data_with_size %>%
@@ -736,7 +619,9 @@ data_with_size <- data_with_size %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
-    datse_size = median(get('datse_size'))
+    dataset_size = median(get('dataset_size')),
+    group = unique(group)[1],
+    prot_length = median(get('prot_length'))
   ) %>%
   ungroup()
 
@@ -753,58 +638,76 @@ data_with_size <- data_with_size %>%
   ))
 
 data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
-
+data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral replication", "Enzyme function", "Other", "Peptide binding", "Protein stability"))
 
 ```
 
+
+# Supp 8
 ```{r}
 
 
-    #annotate("text", 
-             #x = 1e3,
-             #y = max(data_with_size$mean_score),  # Adjust to place it well
-             #label = paste0("Slope: ", round(slope, 2), "\nR²: ", round(r_squared, 2)), 
-             #hjust = 0,
-             #color = "black"
-  #)
+#ESM1v 650M
+model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm1v 650M")
+slope_ESM1v_650M <- coef(model_ESM1v_650M)[2]
+r_squared_ESM1v_650M <- summary(model_ESM1v_650M)$r.squared
+label_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_ESM1v_650M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_ESM1v_650M))) ~ "     "))
+
+# ESM2 8M
+model_8M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 8M")
+slope_8M <- coef(model_8M)[2]
+r_squared_8M <- summary(model_8M)$r.squared
+label_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_8M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_8M))) ~ "     "))
+
+#ESM2 35M
+model_35M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 35M")
+slope_35M <- coef(model_35M)[2]
+r_squared_35M <- summary(model_35M)$r.squared
+label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_35M))) ~ "     "))
 
 
-model_150M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "150M")
+#ESM2 150M
+model_150M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 150M")
 slope_150M <- coef(model_150M)[2]
 r_squared_150M <- summary(model_150M)$r.squared
+label_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_150M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_150M))) ~ "     "))
 
-
-label_150M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_150M), 2)), 
-                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_150M), 2)) ~ "     "))
-
-
-model_650M <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "650M")
+#ESM2 650M
+model_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 650M")
 slope_650M <- coef(model_650M)[2]
 r_squared_650M <- summary(model_650M)$r.squared
+label_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_650M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_650M))) ~ "     "))
 
+#ESM2 3B
+model_3B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 3B")
+slope_3B <- coef(model_3B)[2]
+r_squared_3B <- summary(model_3B)$r.squared
+label_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_3B))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_3B))) ~ "     "))
 
-label_650M <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_650M), 2)), 
-                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_650M), 2)) ~ "   "))
-
-
-model_15B <- lm(mean_score ~ log(datse_size), data = data_with_size, subset = param == "15B")
+#ESM2 15B
+model_15B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 15B")
 slope_15B <- coef(model_15B)[2]
 r_squared_15B <- summary(model_15B)$r.squared
-
-
-label_15B <- bquote(atop("Slope:" ~ .(round(as.numeric(slope_15B), 2)), 
-                            R^2 ~ ":" ~ .(round(as.numeric(r_squared_15B), 2)) ~ "     "))
+label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_15B))) ~ "     "))
 
 
 data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
-  labels = I(list(label_150M, label_650M, label_15B)),
-  param = c("150M", "650M", "15B"),
-  x = c(2100, 2100, 2100),
-  y = c(1.10, 1.10, 1.10)
+  labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B)),
+  Model = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"),
+  x = c(1300, 1300, 1300, 1300, 1300, 1300, 620),
+  y = c(.8, .8, .8, .8, .8, .8, .8)
 )
 
-data_text$param <- factor(data_text$param, levels = c("150M", "650M", "15B"))
+data_text$Model <- factor(data_text$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"))
+
 
 print(data_text)
 ```
@@ -812,6 +715,8 @@ print(data_text)
 
 
 ```{r}
+
+# FOR SUP 8
 
 # kept showing 10^3.44446447 etc, idk how else to remove them
 # if the power is a whole number then show the label, else ""
@@ -821,48 +726,58 @@ label_function <- function(x) {
 
 
 plot_param <- data_with_size %>%
+  filter(Model != 'esm2 15B') %>%
     ggplot(aes(
-      x = datse_size, 
+      x = dataset_size, 
       y = mean_score,
-      #color = '#0072B2'
+      color = group
       )) +
-    scale_x_continuous(limits = c(1000, NA),
+    scale_x_continuous(limits = c(300, NA),
+                       #limits = c(1000, NA),
                        trans = scales::log_trans(),
                        breaks = scales::log_breaks(),
                         
                        labels = label_function
                          #trans_format("log10", math_format(10^.x))
                        ) +
-    #scale_y_continuous(limits = c(0, 0.8))+
-      geom_smooth(method = 'lm', 
-                formula = y ~ log(x), 
-                color = "#D55E00", 
-                se = TRUE, 
-                fill = "#D55E00", 
-                #fullrange = TRUE
-                ) +
-    geom_point(alpha = 1,
-               color = '#0072B2'
+    scale_y_continuous(limits = c(0, 0.9))+
+      # geom_smooth(method = 'lm', 
+      #           formula = y ~ log(x), 
+      #           se = TRUE, 
+      #           fill = NA, 
+      #           #fullrange = TRUE
+      #           ) +
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = .9
               ) +
     
     geom_errorbar(
       aes(
         ymin = mean_score - std_score, 
         ymax = mean_score + std_score), 
-      alpha = .7,
-      color = '#0072B2'
+      alpha = .7
+  
       )+
   
 
   #annotate(geom='text', x=c(200), y=c(.8), label=c('Down'), size=50) +
   #annotate(geom='text', x=c(-7,7), y=c(270, 270), label=c(down, up), size=5) +
     
-    labs(x = "Dataset Size", 
+    labs(x = "Sample Size", 
          y = expression(paste("Predicted ", R^2)),
          #title = param_vec[1]
          #title = cat("ESM2", param),
          #color = ""
          ) +
+  guides(color = guide_legend(title = NULL))  +
     theme_minimal_grid(12, rel_small = 1)+
     theme(
         #legend.position = "top",
@@ -880,33 +795,387 @@ plot_param <- data_with_size %>%
         )+
   
     geom_text(
-        data = data_text,
+        data = filter(data_text, Model != "esm2 15B"),
         mapping = aes(x = x, y = y, label = labels),
+        color = "black",
         parse=TRUE,
-        #hjust = 0,     # Adjust label alignment
-    #vjust = 0
-        )
+
+        )+
+  facet_wrap(~ Model, ncol = 3,scales = "free_x")
     
 
 
-
-
-
-plot_param <- plot_param + facet_grid(cols = vars(param))
-#plot_param <- plot_param + annotate("text", label = "Test", size = 4, x = 1500, y = 1.2)  
-
-
-
-
-#ggsave(plot_param, 
+# ggsave(plot_param,
 #        filename = "plot_param.png",
 #        path = here("figs"),
 #        width = 8,
-#        height = 3,
+#        height = 5,
 #        dpi=600)
 
 plot_param 
 
+
+```
+
+# Supp 9
+
+```{r}
+
+#ESM1v 650M
+pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm1v 650M")
+pslope_ESM1v_650M <- coef(pmodel_ESM1v_650M)[2]
+pr_squared_ESM1v_650M <- summary(pmodel_ESM1v_650M)$r.squared
+plabel_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_ESM1v_650M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_ESM1v_650M))) ~ "     "))
+
+# ESM2 8M
+pmodel_8M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 8M")
+pslope_8M <- coef(pmodel_8M)[2]
+pr_squared_8M <- summary(pmodel_8M)$r.squared
+plabel_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_8M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_8M))) ~ "     "))
+
+#ESM2 35M
+pmodel_35M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 35M")
+pslope_35M <- coef(pmodel_35M)[2]
+pr_squared_35M <- summary(pmodel_35M)$r.squared
+plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_35M))) ~ "     "))
+
+
+#ESM2 150M
+pmodel_150M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 150M")
+pslope_150M <- coef(pmodel_150M)[2]
+pr_squared_150M <- summary(pmodel_150M)$r.squared
+plabel_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_150M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_150M))) ~ "     "))
+
+#ESM2 650M
+pmodel_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 650M")
+pslope_650M <- coef(pmodel_650M)[2]
+pr_squared_650M <- summary(pmodel_650M)$r.squared
+plabel_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_650M))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_650M))) ~ "     "))
+
+#ESM2 3B
+pmodel_3B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 3B")
+pslope_3B <- coef(pmodel_3B)[2]
+pr_squared_3B <- summary(pmodel_3B)$r.squared
+plabel_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_3B))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_3B))) ~ "     "))
+
+#ESM2 15B
+pmodel_15B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 15B")
+pslope_15B <- coef(pmodel_15B)[2]
+pr_squared_15B <- summary(pmodel_15B)$r.squared
+plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))), 
+                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_15B))) ~ "     "))
+
+
+prot_data_text <- data.frame(
+  #labels = c(label_150M, label_650M, label_15B),
+  labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B)),
+  Model = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"),
+  x = c(200, 300, 300, 300, 300, 300, 175),
+  y = c(.8, .8, .8, .8, .8, .8, .8)
+)
+
+prot_data_text$Model <- factor(data_text$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"))
+
+
+print(prot_data_text)
+```
+
+```{r}
+
+# FOR SUP 9
+
+# kept showing 10^3.44446447 etc, idk how else to remove them
+# if the power is a whole number then show the label, else ""
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
+  }
+
+
+sup9_prot_length <- data_with_size %>%
+  filter(Model != 'esm2 15B') %>%
+    ggplot(aes(
+      x = prot_length, 
+      y = mean_score,
+      color = group
+      )) +
+    scale_x_continuous(limits = c(100, NA),
+                       #limits = c(1000, NA),
+                       trans = scales::log_trans(),
+                       breaks = scales::log_breaks(),
+                        
+                       labels = label_function
+                         #trans_format("log10", math_format(10^.x))
+                       ) +
+    scale_y_continuous(limits = c(0, 0.9))+
+      # geom_smooth(method = 'lm', 
+      #           formula = y ~ log(x), 
+      #           se = TRUE, 
+      #           fill = NA, 
+      #           #fullrange = TRUE
+      #           ) +
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = .9
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .7
+  
+      )+
+  
+
+  #annotate(geom='text', x=c(200), y=c(.8), label=c('Down'), size=50) +
+  #annotate(geom='text', x=c(-7,7), y=c(270, 270), label=c(down, up), size=5) +
+    
+    labs(x = "Protein Length", 
+         y = expression(paste("Predicted ", R^2)),
+         #title = param_vec[1]
+         #title = cat("ESM2", param),
+         #color = ""
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+    geom_text(
+        data = filter(prot_data_text, Model != "esm2 15B"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+
+        )+
+  facet_wrap(~ Model, ncol = 3, scales = "free_x")
+    
+
+
+# ggsave(sup9_prot_length,
+#        filename = "sup9.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 5,
+#        dpi=600)
+
+sup9_prot_length 
+
+
+```
+
+# Fig 5
+```{r}
+# part with datasize
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
+  }
+
+
+fig_5_datasize <- data_with_size %>%
+  filter(Model == 'esm2 15B') %>%
+    ggplot(aes(
+      x = dataset_size, 
+      y = mean_score,
+      color = group
+      )) +
+    scale_x_continuous(limits = c(300, NA),
+                       #limits = c(1000, NA),
+                       trans = scales::log_trans(),
+                       breaks = scales::log_breaks(),
+                        
+                       labels = label_function
+                       ) +
+    scale_y_continuous(limits = c(0, 0.85))+
+
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = 2
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .8,
+      size = .6
+      )+
+    labs(x = "Sample Size", 
+         y = expression(paste("Predicted ", R^2)),
+
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+    geom_text(
+        data = filter(data_text, Model == "esm2 15B"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+        #hjust = 0,     # Adjust label alignment
+    #vjust = 0
+        )
+
+fig_5_datasize
+
+```
+
+
+```{r}
+#fig 5 second part with protein length
+
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
+  }
+
+
+fig5_protlen <- data_with_size %>%
+  filter(Model == 'esm2 15B') %>%
+    ggplot(aes(
+      x = prot_length, 
+      y = mean_score,
+      color = group
+      )) +
+    scale_x_continuous(limits = c(100, NA),
+                       #limits = c(1000, NA),
+                       trans = scales::log_trans(),
+                       breaks = scales::log_breaks(),
+                        
+                       labels = label_function
+                         #trans_format("log10", math_format(10^.x))
+                       ) +
+    scale_y_continuous(limits = c(0, 0.85))+
+      # geom_smooth(method = 'lm', 
+      #           formula = y ~ log(x), 
+      #           se = TRUE, 
+      #           fill = NA, 
+      #           #fullrange = TRUE
+      #           ) +
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = 2
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .8,
+      size = .6
+  
+      )+
+
+    labs(x = "Protein Length", 
+         y = expression(paste("Predicted ", R^2)),
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        legend.position = "right",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 20, 0, 0)
+        )+
+  
+    geom_text(
+        data = filter(prot_data_text, Model == "esm2 15B"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+        #hjust = 0,     # Adjust label alignment
+    #vjust = 0
+        )
+
+
+# ggsave(sup9_prot_length,
+#        filename = "sup9.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 5,
+#        dpi=600)
+
+fig5_protlen 
+
+```
+
+```{r}
+#fig5 assembly
+fig5_assembled <- plot_grid(fig_5_datasize,
+                  fig5_protlen,
+                  labels = c('A', 'B'), 
+                  label_size = 12, 
+                  rel_widths = c(1, 1.4)
+                  )
+
+# ggsave(fig5_assembled,
+#        filename = "fig5_assembled.png",
+#        path = here("figs"),
+#        width = 10,
+#        height = 4,
+#        dpi=600)
+
+fig5_assembled
 
 ```
 
@@ -920,11 +1189,9 @@ plot_param
 
 
 
-
-
 # Pisces Data Preprocessing
 ```{r}
-pisces_data <- read.csv(here('results/summary_PISCES_lassoCV_esm2_150M_all_methods.csv'))
+pisces_data <- read.csv(here('results/summary_PISCES_esm2_150M_all_methods.csv'))
 #'Pisces_summary.csv'
 pisces_data <- dplyr::select(pisces_data, c('Dataset', 'Compression_method', 'Fold', 'R2_score_test', 'rho_score_test'))
 
@@ -1057,7 +1324,7 @@ pisces_plot
 
 
 
-# Figure 3B: Pisces Viridis Gradient
+# Figure 3B Pisces multiboxplot
 ```{r}
 multi_mod_pisces <- read.csv(here("results/summary_PISCES_multi_model.csv"))
 
@@ -1107,75 +1374,8 @@ grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels 
 ```
 
 
-```{r}
-
-gradient_pisces <- grouped_multi_mod_pisces %>%
-  #filter(Compression_methd %in% c('mean')) %>%
-  ggplot(aes(
-    x = Model, 
-    y = mean_score, 
-    group = Dataset, 
-    color = mean_score
-    )) +
-    geom_line() +
-    geom_point(shape = 21, 
-               size = 2,  
-               color = "black", 
-               aes(fill = mean_score), 
-               stroke = .2
-               ) + 
-    scale_color_viridis_c(begin = .2, 
-                          end =.8, 
-                          direction=-1
-                          ) +
-    scale_fill_viridis_c(begin = .2, 
-                         end = .8, 
-                         direction = -1, 
-                         guide = "none"
-                         ) +
-    labs(x = "Model Size", 
-         y = expression(R^2), 
-         color = ""
-         ) +
-    theme_minimal_hgrid(12, rel_small = 1)+
-    theme(
-        #legend.position = "top",
-        panel.background = element_rect(fill = "white", 
-                                        colour = "white"),
-        plot.background = element_rect(fill = "white", 
-                                       colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
-                                    size = .5),
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(10, 10, 0, 10))
-  
 
 
-#ggsave(gradient_pisces, 
-#        filename = "gradient_pisces.png",
-#        path = here('figs'),
-#        width = 11,
-       #6
-#        height = 4,
-#        dpi=600)      
-
-gradient_pisces
-
-
-```
-
-
-
-
-
-
-
-# Pisces multiboxplot
 ```{r}
 
 #color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
@@ -1229,6 +1429,8 @@ pisces_multi_boxplot
 
 
 
+
+
 # Figure 4: DMS 4 set (with His7) sampling (DMS) 
 ```{r}
 DMS_sampling <- read.csv(here('results/summary_DMS4_sampling.csv'))
@@ -1236,6 +1438,8 @@ DMS_sampling <- read.csv(here('results/summary_DMS4_sampling.csv'))
 ```
 
 ```{r}
+
+
 grouped_DMS_sampling <- DMS_sampling %>%
   group_by(Dataset, Sample_size, Model) %>%
   filter(!Sample_size %in% c(32)) %>%
@@ -1279,7 +1483,8 @@ parepard_sample <- grouped_DMS_sampling %>%
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
   filter(!Dataset %in% c("parEparD (1-4)"))
 
-# change y range -1 to 1
+# grouped_DMS_sampling <- grouped_DMS_sampling %>%
+#   mutate(label = dataset_labels[Dataset])
 
 ```
 
@@ -1341,16 +1546,15 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
         axis.ticks.y = element_line(color = "black"),
         plot.margin = margin(0, 10, 0, 10))+
   facet_wrap(~ Dataset, ncol = 1, scales = "free"
-             )
-        
+              ) 
 
 
-  ggsave(DMS_sample_R2_plot, 
-         filename = "DMS_sample_R2_plot.png",
-         path = here("figs"),
-         width = 6.75,
-        height = 8,
-         dpi=600)
+  # ggsave(DMS_sample_R2_plot, 
+  #        filename = "DMS_sample_R2_plot.png",
+  #        path = here("figs"),
+  #        width = 6.75,
+  #       height = 8,
+  #        dpi=600)
 
 
 #DMS_sample_R2_plot + facet_grid(cols = vars(Dataset))
@@ -1359,22 +1563,24 @@ DMS_sample_R2_plot
 
 ```
 
+
 ```{r}
 
-supp_parepard_sample_R2_plot <- parepard_sample %>%
+sample_coeff_plot <- grouped_DMS_sampling %>%
   ggplot(aes(
       x = Sample_size, 
-      y = mean_R2_score,
+      y = mean_coeff_score,
       color = Model
       )) +
-  scale_x_continuous(limits = c(95, NA),trans = scales::log_trans(),
+  scale_x_continuous(limits = c(95, 1000000), trans = scales::log_trans(),
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))
                        ) +
-  scale_y_continuous(limits = c(-1.75, 1)) +
+  scale_y_continuous(limits =c(0, 1350)) +
+  #scale_y_continuous(limits = c(NA, 1500)) +
   geom_errorbar(aes(
-      ymin = mean_R2_score - std_R2_score, 
-      ymax = mean_R2_score + std_R2_score), 
+      ymin = mean_coeff_score - std_coeff_score, 
+      ymax = mean_coeff_score + std_coeff_score), 
       width = 0.1,
       alpha = 1,
       #position = position_dodge(width = .2)
@@ -1387,8 +1593,8 @@ supp_parepard_sample_R2_plot <- parepard_sample %>%
     values = color_dict
     ) +
   
-  labs(title = "parEparD (1-4)", x= "Sample Size", 
-    y = expression(R^2), fill = ""
+  labs(x= "Sample Size", 
+    y = "Number of Features", fill = ""
        ) +
   theme_minimal_grid(12, rel_small = 1)+
   theme(
@@ -1399,114 +1605,53 @@ supp_parepard_sample_R2_plot <- parepard_sample %>%
 
         panel.border = element_rect(color = "black", 
                                     fill = NA, 
-                                   size = .5),
-      
-        axis.line = element_blank(),
-        axis.ticks.x = element_line(color = "black"),
-        axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))
-
-
-
-
-  ggsave(supp_parepard_sample_R2_plot, 
-         filename = "supp_parepard_sample_R2_plot.png",
-         path = here("figs"),
-         width = 6.75,
-        height = 5,
-         dpi=600)
-
-supp_parepard_sample_R2_plot
-
-
-```
-
-
-
-
-
-```{r}
-
-his7_sample_coeff_plot <- grouped_his7_sampling %>%
-  ggplot(aes(
-      x = Sample_size, 
-      y = mean_coeff_score,
-      color = Model
-      )) +
-  scale_x_continuous(limits = c(92, NA), trans = scales::log_trans(),
-                     breaks = scales::log_breaks(),
-                     labels = trans_format("log10", math_format(10^.x))
-                       ) +
-  #scale_y_continuous(limits = c(NA, 1500)) +
-  geom_errorbar(aes(
-      ymin = mean_coeff_score - std_coeff_score, 
-      ymax = mean_coeff_score + std_coeff_score), 
-      width = 0.1,
-      alpha = 1,
-      position = position_dodge(width = .2)
-      ) +
-  geom_line(position = position_dodge(width = 0.2))+
-  geom_point(position = position_dodge(width = 0.2))+
-  scale_color_manual(
-    values = color_dict
-    ) +
-  
-  labs(x= "Sample Size", 
-    y = "Number of Features", fill = ""
-       ) +
-  theme_minimal_grid(12, rel_small = 1)+
-  theme(
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "white"),
-        plot.background = element_rect(fill = "white", colour = "white"),
-      
-
-        panel.border = element_rect(color = "black", 
-                                    fill = NA, 
                                     size = .5),
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))
+        plot.margin = margin(0, 10, 0, 10))+
+   facet_wrap(~ Dataset, ncol = 1, scales = "free"
+              )
         
   
   
 
-#ggsave(his7_sample_coeff_plot, 
-#       filename = "his7_sample_coeff_plot.png",
-#       path = here("figs"),
-#       width = 8,
-#       height = 5,
-#       dpi=600)
+# ggsave(sample_coeff_plot, 
+#        filename = "sample_coeff_plot.png",
+#        path = here("figs"),
+#        width = 6.75,
+#         height = 8,
+#        dpi=600)
 
 
-his7_sample_coeff_plot
+sample_coeff_plot
 
 ```
 
 ```{r}
-his7_sample_plot <- plot_grid(his7_sample_R2_plot, 
-                        his7_sample_coeff_plot,
+sampling_plots <- plot_grid(DMS_sample_R2_plot, 
+                       sample_coeff_plot,
                         labels = c('A', 'B'), 
                         label_size = 12, 
-                        rel_heights = c(1.1, 1),
-                        ncol = 1)
+                        rel_widths = c(1, 1),
+                        nrow = 1)
 
-# ggsave(his7_sample_plot, 
-#        filename = "his7_sample_plot.png",
+# ggsave(sampling_plots,
+#        filename = "sampling_plots.png",
 #        path = here("figs"),
-#        width = 7,
-#        height = 6,
+#        width = 13.5,
+#        height = 8,
 #        dpi=600)
 
-his7_sample_plot
+sampling_plots
 
 ```
 
 
 
 
-#### Assembling Parts with Cowplot
+
+# Assembling Parts with Cowplot
 # Figure 2 Assembly
 ```{r}
 # cowplot for DMS 150M data
@@ -1528,45 +1673,6 @@ double_plot <- plot_grid(final_plot,
 double_plot
 
 ```
-# Figure 3 Assembly 
-```{r}
-gradient_plots <- plot_grid(gradient_plot, 
-                        gradient_pisces,
-                        labels = c('A', 'B'), 
-                        label_size = 12, 
-                        rel_heights = c(1, 1),
-                        ncol = 1)
-
-ggsave(gradient_plots, 
-       filename = "gradient_plots.png",
-       path = here("figs"),
-       width = 11,
-       height = 8,
-       dpi=600)
-
-gradient_plots
-
-```
-
-
-# supplementary figs 
-# Supplementary Figure 3 Assembly #NOT UPDATED
-```{r}
-supp_multi_mod <- plot_grid(boxplot_15B_150M, 
-                            pisces_boxplot, 
-                            labels = c('A', 'B'), 
-                            ncol = 1, 
-                            rel_heights = c(1.1, 1))
-
-#ggsave(supp_multi_mod, 
-#       filename = "supp_multi_mod.png",
-#       path = here("figs"),
-#       width = 12,
-#       height = 8,
-#       dpi=600)
-
-supp_multi_mod
-```
 
 # Supplementary Figure 1
 ```{r}
@@ -1585,10 +1691,6 @@ supp_data_mutated = data %>%
 ```{r}
 methods_no_mean <- c("maxPool", "iDCT5", 'iDCT4', "pca1", 'rbf1', 'sigmoid1', "bos", 'iDCT3', "pca2", 'sigmoid2', 'iDCT2', 'rbf2', 'iDCT1')
   
-  #c("maxPool", 'bos', 'iDCT1', 'iDCT2', 'iDCT3', 'iDCT4', 'rbf1', 'rbf2', 'sigmoid1', 'sigmoid2', "pca1", "pca2", "rbf1", "rbf2")
-
-  #c("bos", "iDCT", "maxPool","pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
-
 
 
 scatter_plots_list <- list()
@@ -1856,7 +1958,7 @@ pisces_barplot <- rev_multi_mod_pisces %>%
                 position = position_dodge(0.85)) + 
   coord_flip()+ 
   guides(fill = guide_legend(reverse = TRUE))+
-  labs(x = "Dataset", 
+  labs(x = "Target", 
        y = expression(R^2), 
        fill='Model') +
   theme_minimal_vgrid(12, rel_small = 1) +
@@ -1892,7 +1994,63 @@ pisces_barplot
 
 
 
-# Fig 3A multimod assembly
+# Supp 7
+
+```{r}
+histogram_data <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
+histogram_data <- histogram_data %>%
+  group_by(Dataset) %>%
+  summarise(
+    dataset_size = median(get('dataset_size')),
+  ) %>%
+  ungroup()
+
+
+histogram_data$bin <- cut(histogram_data$dataset_size,
+                breaks = c(-Inf, 1000, 3200, 10000, 32000, Inf),
+                labels = c("<1000", "1000-3200", "3200-10000", "10000-32000", ">32000"),
+                right = FALSE) 
+
+histo_plot <- histogram_data %>%
+ ggplot(aes(x = bin)) +
+  geom_bar(fill = "gray",) +  
+  labs(x = "Number of Samples", 
+       y = "Number of Datasets", 
+       title = "" )+
+   theme_minimal_hgrid(12, rel_small = 1) +  
+  theme(
+    panel.background = element_rect(fill = "white", colour = "white"),
+    plot.background = element_rect(fill = "white", colour = "white"),
+    axis.text.x=element_text(size=12),
+    axis.text.y=element_text(size=10),
+
+    panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+    axis.line = element_blank(),
+    axis.ticks.x = element_line(color = "black"),
+    axis.ticks.y = element_line(color = "black"),
+    plot.margin = margin(10,10,0,10)
+  ) 
+  
+histo_plot
+
+
+# ggsave(histo_plot, 
+#        filename = "sup6_DMS_sample_size_v02.png",
+#        path = here("figs"),
+#        width = 7,
+#        height = 5,
+#        dpi=600)
+
+```
+
+
+
+
+
+
+# Fig 3 multimod assembly
 ```{r}
 fig3_multi_mod <- plot_grid(DMS_multi_boxplot, 
                             pisces_multi_boxplot, 
@@ -1900,101 +2058,13 @@ fig3_multi_mod <- plot_grid(DMS_multi_boxplot,
                             ncol = 1, 
                             rel_heights = c(1.1, 1))
 
-ggsave(fig3_multi_mod, 
-       filename = "fig3_multi_mod.png",
-       path = here("figs"),
-       width = 12,
-       height = 8,
-       dpi=600)
+# ggsave(fig3_multi_mod, 
+#        filename = "fig3_multi_mod.png",
+#        path = here("figs"),
+#        width = 12,
+#        height = 8,
+#        dpi=600)
 
 fig3_multi_mod
 ```
 
-
-
-# extra code unused plots
-```{r}
-# methods = c('mean', 'maxPool')
-# 
-# 
-# 
-# grouped_data <- data %>%
-#   filter(Compression_methd %in% methods) %>%
-#   group_by(Dataset, Compression_methd) %>%
-#   summarise(
-#     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
-#     std_score = sd(get('R2_score_test'), na.rm = TRUE)
-#   ) %>%
-#   ungroup()
-# 
-# 
-# mean_data <- grouped_data %>%
-#   filter(Compression_methd == "mean")
-# 
-# ordered_levels <- mean_data %>%
-#   arrange(mean_score) %>%
-#   pull(Dataset)
-# 
-# grouped_data <- grouped_data %>%
-#   mutate(Dataset = factor(Dataset, levels = ordered_levels))
-
-
-
-
-```
-
-```{r}
-#, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%
-# custom_colors <- c("mean" = '#0072B2', "maxPool" = '#D55E00')
-# 
-# 
-# scatter_150M <- grouped_data %>%
-#   ggplot(aes(
-#       x = mean_score, 
-#       y = Dataset,
-#       color = Compression_methd
-#       )) +
-#   geom_point(alpha = 1
-#       ) +
-#   geom_errorbarh(aes(
-#       xmin = mean_score - std_score, 
-#       xmax = mean_score + std_score), 
-#       height = 0.3,
-#       alpha = .7
-#       ) +
-#       scale_x_continuous(limits = c(0, .8)) + 
-#   scale_color_manual(values = custom_colors) +
-#   labs(x = "R2", 
-#        y = "", 
-#        color = "Compression Method"
-#        ) +
-#   
-#   theme_minimal_vgrid(12, rel_small = 1)+
-#   theme(
-#         panel.background = element_rect(fill = "white", 
-#                                         colour = "white"),
-#         plot.background = element_rect(fill = "white", 
-#                                        colour = "white"),
-#         legend.position = "top",
-#         panel.border = element_rect(color = "black", 
-#                                     fill = NA, 
-#                                     size = .5),
-#         axis.text.y = element_text(size = 10),
-#         axis.line = element_blank(),
-#         axis.ticks.x = element_line(color = "black"),
-#         axis.ticks.y = element_line(color = "black"),
-# 
-#         
-#         plot.margin = margin(0, 0, 0, 0)) 
-# 
-# 
-# #ggsave(scatter_150M, 
-#       filename = "sup5_DMS_scatter.png",
-#       path = here("figs"),
-#       width = 8,
-#       height = 10, #8
-#       dpi=600)
-
-
-#scatter_150M
-```
