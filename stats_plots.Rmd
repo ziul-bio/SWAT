@@ -805,12 +805,12 @@ plot_param <- data_with_size %>%
     
 
 
- ggsave(plot_param,
-        filename = "plot_param.png",
-        path = here("figs"),
-        width = 8,
-        height = 5,
-        dpi=600)
+ # ggsave(plot_param,
+ #        filename = "plot_param.png",
+ #        path = here("figs"),
+ #        width = 8,
+ #        height = 5,
+ #        dpi=600)
 
 plot_param 
 
@@ -1166,12 +1166,12 @@ fig5_assembled <- plot_grid(fig_5_datasize,
                   rel_widths = c(1, 1.4)
                   )
 
-ggsave(fig5_assembled,
-       filename = "fig5_assembled.png",
-       path = here("figs"),
-       width = 10,
-       height = 4,
-       dpi=600)
+# ggsave(fig5_assembled,
+#        filename = "fig5_assembled.png",
+#        path = here("figs"),
+#        width = 10,
+#        height = 4,
+#        dpi=600)
 
 fig5_assembled
 
