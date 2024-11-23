@@ -740,7 +740,7 @@ plot_param <- data_with_size %>%
                        labels = label_function
                          #trans_format("log10", math_format(10^.x))
                        ) +
-    scale_y_continuous(limits = c(0, 0.9))+
+    scale_y_continuous(limits = c(-.01, 0.9))+
       # geom_smooth(method = 'lm', 
       #           formula = y ~ log(x), 
       #           se = TRUE, 
@@ -805,12 +805,12 @@ plot_param <- data_with_size %>%
     
 
 
-# ggsave(plot_param,
-#        filename = "plot_param.png",
-#        path = here("figs"),
-#        width = 8,
-#        height = 5,
-#        dpi=600)
+ # ggsave(plot_param,
+ #        filename = "plot_param.png",
+ #        path = here("figs"),
+ #        width = 8,
+ #        height = 5,
+ #        dpi=600)
 
 plot_param 
 
@@ -876,7 +876,7 @@ prot_data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B)),
   Model = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"),
-  x = c(200, 300, 300, 300, 300, 300, 175),
+  x = c(130, 200, 200, 200, 200, 200, 110),
   y = c(.8, .8, .8, .8, .8, .8, .8)
 )
 
@@ -884,6 +884,7 @@ prot_data_text$Model <- factor(data_text$Model, levels = c("esm1v 650M", "esm2 8
 
 
 print(prot_data_text)
+
 ```
 
 ```{r}
@@ -904,7 +905,7 @@ sup9_prot_length <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(100, NA),
+    scale_x_continuous(limits = c(60, NA),
                        #limits = c(1000, NA),
                        trans = scales::log_trans(),
                        breaks = scales::log_breaks(),
@@ -912,7 +913,7 @@ sup9_prot_length <- data_with_size %>%
                        labels = label_function
                          #trans_format("log10", math_format(10^.x))
                        ) +
-    scale_y_continuous(limits = c(0, 0.9))+
+    scale_y_continuous(limits = c(-.01, .9))+
       # geom_smooth(method = 'lm', 
       #           formula = y ~ log(x), 
       #           se = TRUE, 
@@ -938,10 +939,7 @@ sup9_prot_length <- data_with_size %>%
       alpha = .7
   
       )+
-  
 
-  #annotate(geom='text', x=c(200), y=c(.8), label=c('Down'), size=50) +
-  #annotate(geom='text', x=c(-7,7), y=c(270, 270), label=c(down, up), size=5) +
     
     labs(x = "Protein Length", 
          y = expression(paste("Predicted ", R^2)),
@@ -977,12 +975,12 @@ sup9_prot_length <- data_with_size %>%
     
 
 
-# ggsave(sup9_prot_length,
-#        filename = "sup9.png",
-#        path = here("figs"),
-#        width = 8,
-#        height = 5,
-#        dpi=600)
+ # ggsave(sup9_prot_length,
+ #        filename = "sup9.png",
+ #        path = here("figs"),
+ #        width = 8,
+ #        height = 5,
+ #        dpi=600)
 
 sup9_prot_length 
 
@@ -1082,7 +1080,7 @@ fig5_protlen <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(100, NA),
+    scale_x_continuous(limits = c(60, NA),
                        #limits = c(1000, NA),
                        trans = scales::log_trans(),
                        breaks = scales::log_breaks(),
