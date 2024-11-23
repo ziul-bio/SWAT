@@ -2,37 +2,23 @@
 [![author](https://img.shields.io/badge/author2-Morgan_Handojo-blue.svg)](https://www.linkedin.com/in/morgan-handojo/) 
 [![The Wilke Lab](https://img.shields.io/badge/Wilke-Lab-brightgreen.svg?style=flat)](https://wilkelab.org) 
 [![](https://img.shields.io/badge/python-3.8+-yellow.svg)](https://www.python.org/downloads/release/python) 
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/ziul-bio/SWAT/issues) 
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-lightgrey.svg)](http://perso.crans.org/besson/LICENSE.html)
 
 
-# Bigger is not always better in protein language models
+# Scaling Down for Efficiency: Medium-Sized Transformer Models for Protein Sequence Transfer Learning
 ![plot](/figures/fig1_scheme.png)
 
 
 # About the project:
 
-## Overview
+## Abstract
 
-The trend of increasing size in Protein Language Models (pLMs) necessitates the benchmarking of model performance. Due to larger models requiring much more computational power, it is important to save time and resources whenever possible while consistently achieving the most accurate results. While common sense may say that bigger == better, biological complexity and dataset size limitations/diversity can complicate analysis. 
-
-This project offers an in-depth investigation into optimizing transfer learning with Evolutionary Scale Modeling 2 (ESM2) by evaluating the performance of the model's embeddings across different parameter sizes to determine the impact of size on transfer learning in biological datasets. 
-
-### Objective
-
-This project aims to create a deeper understanding of the relationship between model size and maximizing transfer learning using three of ESM2's available parameters sizes: 150M, 650M, and 15B. To investigate this, we benchmarked the perfomance of each of these models on different types of data: highly homogenous Deep Mutational Scanning (DMS) datasets as well as a diverse data from PISCES: A Protein Sequence Culling Server.
-
-### Methodology
-
-* utilized ESM2 (150M, 650M, 15B) to extract protein embeddings from the datasets
-* compressed embeddings to reduce dimensionality, with the best method determined to be average pooling
-* evaluated predictive performance using LassoCV regression
-* statistical analysis performed using a linear mixed-effects model
+Protein language models such as the  transformer-based Evolutionary Scale Modeling 2 (ESM2) can offer deep insights into evolutionary and structural properties of proteins. While larger models, such as ESM2 15B, promise to capture more complex patterns in sequence space, they also present practical challenges due to their high dimensionality and high computational cost. We systematically evaluated the performance of all ESM2 models across many biological datasets to determine the impact of model size on transfer learning. Surprisingly, larger models do not always outperform smaller ones, especially when data is limited. Medium sized models, such as ESM2 650M, exhibited consistent performance, falling only slightly behind the 15B parameter model despite being over 20 times smaller. Additionally, we compared various methods of embedding compression to identify the most effective approach, and we found that mean embeddings consistently outperformed other compression methods. Our results show that ESM2 650M with mean embeddings offers an optimal balance between performance and efficiency, making it a practical and scalable choice for transfer learning in a variety of biological applications. 
 
 
-### Innovation and Impact
+### Significance
 
-By enhancing our understanding of the impact of model size on analysis, we can instead focus on finding new ways to optimize performance by improving smaller models rather than scaling up in size. This will create greater accessibilty for analysis, especially for projects that may not have the resources or computational power to implement larger models.
+This work challenges the common belief that larger language models always yield better results, here in the context of protein biochemistry. By systematically comparing transformer models of different sizes in transfer learning tasks, we demonstrate that medium size models, such as ESM2 650M, frequently perform as well as larger variants, specially when data is limited. These findings provide a more efficient strategy for machine learning-based protein analysis and promote the broader accessibility of AI in biology. Smaller, more efficient models can help democratize advanced machine-learning tools, making them more accessible to researchers with limited computational resources
 
 
 **Keywords:** ESM2 | pLM Embeddings | Feature compression | Transfer Learning 
