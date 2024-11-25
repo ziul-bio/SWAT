@@ -45,7 +45,7 @@ python scripts/compressing_embeddings.py  -e embeddings/DMS/BLAT_ECOLX_Ostermeie
 4. **Regression Model**:  
 ```bash
 # with the compressed embedding we can run the regression model, see script for more details
-python scripts/run_reg_Lasso.py -i embeddings/BLAT_ECOLX_Ostermeier2014_esm2_150M_compressed/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.pkl -m data/metadata_DMS/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
+python scripts/run_reg_LassoCV.py -i embeddings/BLAT_ECOLX_Ostermeier2014_esm2_150M_compressed/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.pkl -m data/metadata_DMS/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
 ```
 
 
