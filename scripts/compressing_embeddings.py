@@ -141,7 +141,7 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embedding = quant2D(embed, n=5, m=44)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
-            elif compression_method == 'iDCT2': #v02 (n=8, m=80), final dimention 640 same as esm2_150M
+            elif compression_method == 'iDCT2': #v02 (n=10, m=64), final dimention 640 same as esm2_150M
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=64) 
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
@@ -149,11 +149,11 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=128) 
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
-            elif compression_method == 'iDCT4': #v04 (n=16, m=320), final dimention 5120 same as esm2_15B
+            elif compression_method == 'iDCT4': #v04 (n=10, m=512), final dimention 5120 same as esm2_15B
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=512)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
-            elif compression_method == 'iDCT5': #v05 (n=16, m=640), final dimention 6400
+            elif compression_method == 'iDCT5': #v05 (n=10, m=640), final dimention 6400
                 embed = np.array(torch.load(file_path)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=640)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
