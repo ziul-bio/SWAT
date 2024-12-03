@@ -225,6 +225,14 @@ res_glht
 ```{r}
 #, fig.width=2.5, fig.height=6, out.width = 100%, out.height = 100%
 
+
+res_glht <- res_glht %>%
+  mutate(contrast = case_when(
+    contrast == "bos" ~ "BOS",
+    contrast == "maxPool" ~ "Max Pooling",
+    TRUE ~ contrast
+  ))
+
 final_plot <- res_glht %>%
   ggplot(aes(y = fct_reorder(contrast, estimate), 
              x = estimate, 
@@ -235,7 +243,7 @@ final_plot <- res_glht %>%
   theme_minimal() +
   labs(
        y = "Compression Method",
-       x = expression(R^2 * " Difference from Mean")
+       x = expression(R^2 * " Difference from Mean Pooling")
        ) +
   geom_vline(xintercept = 0, linetype = "dotted", color = '#000000', linewidth = 1) +
 
@@ -280,18 +288,18 @@ multi_mod_DMS <- read.csv(here("results/summary_DMS_all_multi_model.csv"))
 
 multi_mod_DMS <- multi_mod_DMS %>%
   mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "esm1v 650M",
-    Model == "esm2_8M" ~ "esm2 8M",
-    Model == "esm2_35M" ~ "esm2 35M",
-    Model == "esm2_150M_all" ~ "esm2 150M",
-    Model == "esm2_150M" ~ "esm2 150M",
-    Model == "esm2_650M" ~ "esm2 650M",
-    Model == "esm2_3B" ~ "esm2 3B",
-    Model == "esm2_15B" ~ "esm2 15B"
+    Model == "esm1v_650M" ~ "ESM1v 650M",
+    Model == "esm2_8M" ~ "ESM2 8M",
+    Model == "esm2_35M" ~ "ESM2 35M",
+    Model == "esm2_150M_all" ~ "ESM2 150M",
+    Model == "esm2_150M" ~ "ESM2 150M",
+    Model == "esm2_650M" ~ "ESM2 650M",
+    Model == "esm2_3B" ~ "ESM2 3B",
+    Model == "esm2_15B" ~ "ESM2 15B"
   ))
 
 #exlude due to sequences too long for esm1v, need to make sup figure
-exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
+exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014")
   
 #  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
 #    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
@@ -307,7 +315,7 @@ grouped_multi_mod_DMS <- multi_mod_DMS %>%
   ungroup()
 
 # need to make an order for the x axis
-grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B"))
 
 
 
@@ -322,7 +330,7 @@ grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("e
 #color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
 
 
-color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
 
 #"#C6DBEF" "#9ECAE1" "#6BAED6" "#4292C6" "#2171B5" "#084594"
 
@@ -408,17 +416,17 @@ data_with_size <- data_with_size %>%
 
 data_with_size <- data_with_size %>%
   mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "esm1v 650M",
-    Model == "esm2_8M" ~ "esm2 8M",
-    Model == "esm2_35M" ~ "esm2 35M",
-    Model == "esm2_150M_all" ~ "esm2 150M",
-    Model == "esm2_150M" ~ "esm2 150M",
-    Model == "esm2_650M" ~ "esm2 650M",
-    Model == "esm2_3B" ~ "esm2 3B",
-    Model == "esm2_15B" ~ "esm2 15B"
+    Model == "esm1v_650M" ~ "ESM1v 650M",
+    Model == "esm2_8M" ~ "ESM2 8M",
+    Model == "esm2_35M" ~ "ESM2 35M",
+    Model == "esm2_150M_all" ~ "ESM2 150M",
+    Model == "esm2_150M" ~ "ESM2 150M",
+    Model == "esm2_650M" ~ "ESM2 650M",
+    Model == "esm2_3B" ~ "ESM2 3B",
+    Model == "esm2_15B" ~ "ESM2 15B"
   ))
 
-data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
+data_with_size$Model <- factor(data_with_size$Model, levels = c('ESM1v 650M', 'ESM2 8M', 'ESM2 35M', 'ESM2 150M', 'ESM2 650M', 'ESM2 3B', 'ESM2 15B'))
 
 ```
 
@@ -427,7 +435,7 @@ data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'e
 
 #exclude_data <- c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
   
-exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014", "BG505 env")
+exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014")
 #  c('BRCA1_HUMAN_RING', 'UBE4B_MOUSE_Klevit2013_singles',
 #    'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014', 'BG505_env_Bloom2018')
 
@@ -446,7 +454,7 @@ small_data <- c("GAL4 YEAST", "DLG4 RAT", "PABP singles", "PTEN HUMAN", "AMIE PS
 
 small_multi_mod_DMS <- data_with_size %>%
   filter(Dataset %in% small_data) %>%
-  filter(!Model %in% c("esm1v 650M")) %>%
+  filter(!Model %in% c("ESM1v 650M")) %>%
 
   ungroup()
 
@@ -593,12 +601,12 @@ gradient_plots <- plot_grid(excluded_DMS_gradient_plot,
                         rel_heights = c(1, 1),
                         ncol = 1)
 
-ggsave(gradient_plots,
-       filename = "sup_gradient_plots_prot_length.png",
-       path = here("figs"),
-       width = 9,
-       height = 8,
-       dpi=600)
+# ggsave(gradient_plots,
+#        filename = "sup_gradient_plots_prot_length.png",
+#        path = here("figs"),
+#        width = 9,
+#        height = 8,
+#        dpi=600)
 
 gradient_plots
 
@@ -627,17 +635,17 @@ data_with_size <- data_with_size %>%
 
 data_with_size <- data_with_size %>%
   mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "esm1v 650M",
-    Model == "esm2_8M" ~ "esm2 8M",
-    Model == "esm2_35M" ~ "esm2 35M",
-    Model == "esm2_150M_all" ~ "esm2 150M",
-    Model == "esm2_150M" ~ "esm2 150M",
-    Model == "esm2_650M" ~ "esm2 650M",
-    Model == "esm2_3B" ~ "esm2 3B",
-    Model == "esm2_15B" ~ "esm2 15B"
+    Model == "esm1v_650M" ~ "ESM1v 650M",
+    Model == "esm2_8M" ~ "ESM2 8M",
+    Model == "esm2_35M" ~ "ESM2 35M",
+    Model == "esm2_150M_all" ~ "ESM2 150M",
+    Model == "esm2_150M" ~ "ESM2 150M",
+    Model == "esm2_650M" ~ "ESM2 650M",
+    Model == "esm2_3B" ~ "ESM2 3B",
+    Model == "esm2_15B" ~ "ESM2 15B"
   ))
 
-data_with_size$Model <- factor(data_with_size$Model, levels = c('esm1v 650M', 'esm2 8M', 'esm2 35M', 'esm2 150M', 'esm2 650M', 'esm2 3B', 'esm2 15B'))
+data_with_size$Model <- factor(data_with_size$Model, levels = c('ESM1v 650M', 'ESM2 8M', 'ESM2 35M', 'ESM2 150M', 'ESM2 650M', 'ESM2 3B', 'ESM2 15B'))
 data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral replication", "Enzyme function", "Other", "Peptide binding", "Protein stability"))
 
 ```
@@ -648,21 +656,21 @@ data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral
 
 
 #ESM1v 650M
-model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm1v 650M")
+model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM1v 650M")
 slope_ESM1v_650M <- coef(model_ESM1v_650M)[2]
 r_squared_ESM1v_650M <- summary(model_ESM1v_650M)$r.squared
 label_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_ESM1v_650M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_ESM1v_650M))) ~ "     "))
 
 # ESM2 8M
-model_8M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 8M")
+model_8M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 8M")
 slope_8M <- coef(model_8M)[2]
 r_squared_8M <- summary(model_8M)$r.squared
 label_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_8M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_8M))) ~ "     "))
 
 #ESM2 35M
-model_35M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 35M")
+model_35M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 35M")
 slope_35M <- coef(model_35M)[2]
 r_squared_35M <- summary(model_35M)$r.squared
 label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))), 
@@ -670,28 +678,28 @@ label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))),
 
 
 #ESM2 150M
-model_150M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 150M")
+model_150M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 150M")
 slope_150M <- coef(model_150M)[2]
 r_squared_150M <- summary(model_150M)$r.squared
 label_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_150M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_150M))) ~ "     "))
 
 #ESM2 650M
-model_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 650M")
+model_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 650M")
 slope_650M <- coef(model_650M)[2]
 r_squared_650M <- summary(model_650M)$r.squared
 label_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_650M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_650M))) ~ "     "))
 
 #ESM2 3B
-model_3B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 3B")
+model_3B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 3B")
 slope_3B <- coef(model_3B)[2]
 r_squared_3B <- summary(model_3B)$r.squared
 label_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_3B))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_3B))) ~ "     "))
 
 #ESM2 15B
-model_15B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "esm2 15B")
+model_15B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 15B")
 slope_15B <- coef(model_15B)[2]
 r_squared_15B <- summary(model_15B)$r.squared
 label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))), 
@@ -701,12 +709,12 @@ label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))),
 data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B)),
-  Model = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"),
+  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
   x = c(1300, 1300, 1300, 1300, 1300, 1300, 620),
   y = c(.8, .8, .8, .8, .8, .8, .8)
 )
 
-data_text$Model <- factor(data_text$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"))
+data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
 
 
 print(data_text)
@@ -726,7 +734,7 @@ label_function <- function(x) {
 
 
 plot_param <- data_with_size %>%
-  filter(Model != 'esm2 15B') %>%
+  filter(Model != 'ESM2 15B') %>%
     ggplot(aes(
       x = dataset_size, 
       y = mean_score,
@@ -795,7 +803,7 @@ plot_param <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(data_text, Model != "esm2 15B"),
+        data = filter(data_text, Model != "ESM2 15B"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
@@ -822,21 +830,21 @@ plot_param
 ```{r}
 
 #ESM1v 650M
-pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm1v 650M")
+pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM1v 650M")
 pslope_ESM1v_650M <- coef(pmodel_ESM1v_650M)[2]
 pr_squared_ESM1v_650M <- summary(pmodel_ESM1v_650M)$r.squared
 plabel_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_ESM1v_650M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_ESM1v_650M))) ~ "     "))
 
 # ESM2 8M
-pmodel_8M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 8M")
+pmodel_8M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 8M")
 pslope_8M <- coef(pmodel_8M)[2]
 pr_squared_8M <- summary(pmodel_8M)$r.squared
 plabel_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_8M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_8M))) ~ "     "))
 
 #ESM2 35M
-pmodel_35M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 35M")
+pmodel_35M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 35M")
 pslope_35M <- coef(pmodel_35M)[2]
 pr_squared_35M <- summary(pmodel_35M)$r.squared
 plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))), 
@@ -844,28 +852,28 @@ plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))),
 
 
 #ESM2 150M
-pmodel_150M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 150M")
+pmodel_150M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 150M")
 pslope_150M <- coef(pmodel_150M)[2]
 pr_squared_150M <- summary(pmodel_150M)$r.squared
 plabel_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_150M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_150M))) ~ "     "))
 
 #ESM2 650M
-pmodel_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 650M")
+pmodel_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 650M")
 pslope_650M <- coef(pmodel_650M)[2]
 pr_squared_650M <- summary(pmodel_650M)$r.squared
 plabel_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_650M))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_650M))) ~ "     "))
 
 #ESM2 3B
-pmodel_3B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 3B")
+pmodel_3B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 3B")
 pslope_3B <- coef(pmodel_3B)[2]
 pr_squared_3B <- summary(pmodel_3B)$r.squared
 plabel_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_3B))), 
                          " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_3B))) ~ "     "))
 
 #ESM2 15B
-pmodel_15B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "esm2 15B")
+pmodel_15B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 15B")
 pslope_15B <- coef(pmodel_15B)[2]
 pr_squared_15B <- summary(pmodel_15B)$r.squared
 plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))), 
@@ -875,12 +883,12 @@ plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))),
 prot_data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B)),
-  Model = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"),
+  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
   x = c(130, 200, 200, 200, 200, 200, 110),
   y = c(.8, .8, .8, .8, .8, .8, .8)
 )
 
-prot_data_text$Model <- factor(data_text$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M","esm2 3B", "esm2 15B"))
+prot_data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
 
 
 print(prot_data_text)
@@ -899,7 +907,7 @@ label_function <- function(x) {
 
 
 sup9_prot_length <- data_with_size %>%
-  filter(Model != 'esm2 15B') %>%
+  filter(Model != 'ESM2 15B') %>%
     ggplot(aes(
       x = prot_length, 
       y = mean_score,
@@ -965,7 +973,7 @@ sup9_prot_length <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(prot_data_text, Model != "esm2 15B"),
+        data = filter(prot_data_text, Model != "ESM2 15B"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
@@ -996,7 +1004,7 @@ label_function <- function(x) {
 
 
 fig_5_datasize <- data_with_size %>%
-  filter(Model == 'esm2 15B') %>%
+  filter(Model == 'ESM2 15B') %>%
     ggplot(aes(
       x = dataset_size, 
       y = mean_score,
@@ -1006,11 +1014,13 @@ fig_5_datasize <- data_with_size %>%
                        #limits = c(1000, NA),
                        trans = scales::log_trans(),
                        breaks = scales::log_breaks(),
-                        
+
                        labels = label_function
                        ) +
     scale_y_continuous(limits = c(0, 0.85))+
 
+  #scale_x_log10(limits = c(300, 100000), labels = label_function) +   
+  
   geom_smooth(
       aes(group = Model),
       method = 'lm', 
@@ -1052,15 +1062,22 @@ fig_5_datasize <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(data_text, Model == "esm2 15B"),
+        data = filter(data_text, Model == "ESM2 15B"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
-        #hjust = 0,     # Adjust label alignment
-    #vjust = 0
+        
         )
 
 fig_5_datasize
+
+# 
+# ggsave(fig_5_datasize,
+#        filename = "fig_5_datasize.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 5,
+#        dpi=600)
 
 ```
 
@@ -1074,7 +1091,7 @@ label_function <- function(x) {
 
 
 fig5_protlen <- data_with_size %>%
-  filter(Model == 'esm2 15B') %>%
+  filter(Model == 'ESM2 15B') %>%
     ggplot(aes(
       x = prot_length, 
       y = mean_score,
@@ -1137,7 +1154,7 @@ fig5_protlen <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(prot_data_text, Model == "esm2 15B"),
+        data = filter(prot_data_text, Model == "ESM2 15B"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
@@ -1261,6 +1278,14 @@ pisces_res_glht
 # Figure 2B: Pisces lmer
 ```{r, fig.width=4, fig.height=8, out.width = 100%, out.height = 100%}
 
+pisces_res_glht <- pisces_res_glht %>%
+  mutate(contrast = case_when(
+    contrast == "bos" ~ "BOS",
+    contrast == "maxPool" ~ "Max Pooling",
+    TRUE ~ contrast
+  ))
+
+
 pisces_plot <- pisces_res_glht %>%
   ggplot(aes(
       y = fct_reorder(contrast, estimate), 
@@ -1273,8 +1298,8 @@ pisces_plot <- pisces_res_glht %>%
                 width = 0.2) +
   theme_minimal() +
   labs(
-       y = "Compression Method",
-       x = expression(R^2 * " Difference from Mean"),
+       y = NULL,
+       x = expression(R^2 * " Difference from Mean Pooling"),
        ) +
   geom_vline(xintercept = 0, 
              linetype = "dotted", 
@@ -1299,7 +1324,7 @@ pisces_plot <- pisces_res_glht %>%
     
     plot.margin = margin(10,10,0,10)
   ) +
-  ggtitle("Pisces")
+  ggtitle("PISCES")
 
 pisces_plot
 
@@ -1346,14 +1371,14 @@ multi_mod_pisces <- multi_mod_pisces %>%
 
 multi_mod_pisces <- multi_mod_pisces %>%
   mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "esm1v 650M",
-    Model == "esm2_8M" ~ "esm2 8M",
-    Model == "esm2_35M" ~ "esm2 35M",
-    Model == "esm2_150M_all" ~ "esm2 150M",
-    Model == "esm2_150M" ~ "esm2 150M",
-    Model == "esm2_650M" ~ "esm2 650M",
-    Model == "esm2_3B" ~ "esm2 3B",
-    Model == "esm2_15B" ~ "esm2 15B"
+    Model == "esm1v_650M" ~ "ESM1v 650M",
+    Model == "esm2_8M" ~ "ESM2 8M",
+    Model == "esm2_35M" ~ "ESM2 35M",
+    Model == "esm2_150M_all" ~ "ESM2 150M",
+    Model == "esm2_150M" ~ "ESM2 150M",
+    Model == "esm2_650M" ~ "ESM2 650M",
+    Model == "esm2_3B" ~ "ESM2 3B",
+    Model == "esm2_15B" ~ "ESM2 15B"
   ))
 
 grouped_multi_mod_pisces <- multi_mod_pisces %>%
@@ -1367,7 +1392,7 @@ grouped_multi_mod_pisces <- multi_mod_pisces %>%
   ungroup()
 
 # need to make an order for the x axis
-grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B"))
+grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B"))
 
 ```
 
@@ -1378,7 +1403,7 @@ grouped_multi_mod_pisces$Model <- factor(grouped_multi_mod_pisces$Model, levels 
 
 #color_dict = c("esm1v 650M" = "#b3e0ff", "esm2 8M" = "#99c4e5", "esm2 35M" = "#80a8cc", "esm2 150M" = "#688eb2", "esm2 650M" = "#51749a", "esm2 3B" = "#3b5b82", "esm2 15B" = "#25436a")
 
-color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
 
 pisces_multi_boxplot <- grouped_multi_mod_pisces %>%
   #filter(Compression_method %in% c('mean')) %>%
@@ -1452,18 +1477,18 @@ grouped_DMS_sampling <- DMS_sampling %>%
 
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
   mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "esm1v 650M",
-    Model == "esm2_8M" ~ "esm2 8M",
-    Model == "esm2_35M" ~ "esm2 35M",
-    Model == "esm2_150M_all" ~ "esm2 150M",
-    Model == "esm2_150M" ~ "esm2 150M",
-    Model == "esm2_650M" ~ "esm2 650M",
-    Model == "esm2_3B" ~ "esm2 3B",
-    Model == "esm2_15B" ~ "esm2 15B"
+    Model == "esm1v_650M" ~ "ESM1v 650M",
+    Model == "esm2_8M" ~ "ESM2 8M",
+    Model == "esm2_35M" ~ "ESM2 35M",
+    Model == "esm2_150M_all" ~ "ESM2 150M",
+    Model == "esm2_150M" ~ "ESM2 150M",
+    Model == "esm2_650M" ~ "ESM2 650M",
+    Model == "esm2_3B" ~ "ESM2 3B",
+    Model == "esm2_15B" ~ "ESM2 15B"
   ))
 
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
-  mutate(Model = factor(Model, levels = c("esm1v 650M", "esm2 8M", "esm2 35M", "esm2 150M", "esm2 650M", "esm2 3B", "esm2 15B")))
+  mutate(Model = factor(Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B")))
 
 
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
@@ -1490,7 +1515,7 @@ grouped_DMS_sampling <- grouped_DMS_sampling %>%
 ```{r}
 
 #color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
-color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
 
 
 #color_dict <- c("150M" = '#7C9ACB','650M' = '#375D8F', "15B" = '#254369')
@@ -1547,7 +1572,7 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
               ) 
 
 
-  # ggsave(DMS_sample_R2_plot, 
+  # ggsave(DMS_sample_R2_plot,
   #        filename = "DMS_sample_R2_plot.png",
   #        path = here("figs"),
   #        width = 6.75,
@@ -1614,7 +1639,7 @@ sample_coeff_plot <- grouped_DMS_sampling %>%
   
   
 
-# ggsave(sample_coeff_plot, 
+# ggsave(sample_coeff_plot,
 #        filename = "sample_coeff_plot.png",
 #        path = here("figs"),
 #        width = 6.75,
@@ -1658,13 +1683,13 @@ double_plot <- plot_grid(final_plot,
                   pisces_plot,
                   labels = c('A', 'B'), 
                   label_size = 12, 
-                  rel_widths = c(1, 1)
+                  rel_widths = c(1.05, 1)
                   )
 
 
-#ggsave(double_plot, 
+# ggsave(double_plot,
 #       filename = "double_lmer.png",
-#       path = here("figures"),
+#       path = here("figs"),
 #       width = 8,
 #       height = 4,
 #       dpi=600)
@@ -1680,6 +1705,12 @@ double_plot
 # use cowplot to combine them all
 
 supp_data_mutated = data %>%
+  mutate(Compression_method = case_when(
+    Compression_method == "bos" ~ "BOS",
+    Compression_method == "maxPool" ~ "MaxPooling",
+    #Compression_method == "mean" ~ "Mean Pooling",
+    TRUE ~ Compression_method
+  )) %>%
   group_by(Dataset, Compression_method) %>%
   summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
   pivot_wider(names_from = Compression_method, values_from = mean_R2_score)
@@ -1687,7 +1718,7 @@ supp_data_mutated = data %>%
 ```
 
 ```{r}
-methods_no_mean <- c("maxPool", "iDCT5", 'iDCT4', "pca1", 'rbf1', 'sigmoid1', "bos", 'iDCT3', "pca2", 'sigmoid2', 'iDCT2', 'rbf2', 'iDCT1')
+methods_no_mean <- c("MaxPooling", "iDCT5", 'iDCT4', "pca1", 'rbf1', 'sigmoid1', "BOS", 'iDCT3', "pca2", 'sigmoid2', 'iDCT2', 'rbf2', 'iDCT1')
   
 
 
@@ -1695,6 +1726,7 @@ scatter_plots_list <- list()
 
 for(method in methods_no_mean){
   dot_color = 'black'
+  y_label <- ifelse(method == "MaxPooling", "Max Pooling", method)
   
   
   plot <- supp_data_mutated %>%
@@ -1706,8 +1738,8 @@ for(method in methods_no_mean){
                 intercept = 0, 
                 linetype = "dashed", 
                 color = '#0072B2') +
-    labs(x = "mean", 
-         y = method) +
+    labs(x = "Mean Pooling", 
+         y = y_label) +
     theme_minimal_grid(12, rel_small = 1) +
     theme(
       panel.background = element_rect(fill = "white", 
@@ -1736,7 +1768,7 @@ for(method in methods_no_mean){
 
 final_methods_plot <- plot_grid(plotlist = scatter_plots_list, ncol =3)
 
-# ggsave(final_methods_plot, 
+# ggsave(final_methods_plot,
 #        filename = "sup1_DMS_results_R2.png",
 #        path = here("figs"),
 #        width = 9,
@@ -1750,13 +1782,19 @@ final_methods_plot
 ```{r}
 # exclude_datasets <- c('F freq', 'M freq', 'C freq', 'D freq', 'Y freq', 'V freq', 'W freq', 'G freq', 'Q freq', 'S freq', 'P freq', 'H freq', 'T freq')
 supp_pisces_mutated = pisces_data %>%
+  mutate(Compression_method = case_when(
+    Compression_method == "bos" ~ "BOS",
+    Compression_method == "maxPool" ~ "MaxPooling",
+    #Compression_method == "mean" ~ "Mean Pooling",
+    TRUE ~ Compression_method
+  )) %>%
   group_by(Dataset, Compression_method) %>%
   summarize(mean_R2_score = mean(R2_score_test, na.rm = TRUE), .groups = 'drop') %>%
   pivot_wider(names_from = Compression_method, values_from = mean_R2_score)
 
 # supp_pisces_mutated <- filter(supp_pisces_mutated, !(Dataset %in% exclude_datasets))
 
-methods_no_mean <- c("bos", "maxPool", "iDCT5", "iDCT4", "iDCT3", "pca1", "iDCT2", "sigmoid1", "rbf1", 'iDCT1', 'pca2', 'sigmoid2', 'rbf2')
+methods_no_mean <- c("BOS", "MaxPooling", "iDCT5", "iDCT4", "iDCT3", "pca1", "iDCT2", "sigmoid1", "rbf1", 'iDCT1', 'pca2', 'sigmoid2', 'rbf2')
   #c("bos", "iDCT", "maxPool", "pca1", "pca2", "rbf1", "rbf2", "sigmoid1", "sigmoid2")
 
 pisces_scatter_plots_list <- list()
@@ -1764,6 +1802,7 @@ pisces_scatter_plots_list <- list()
 for(method in methods_no_mean){
 
   dot_color = 'black'
+  y_label <- ifelse(method == "MaxPooling", "Max Pooling", method)
   
   
   plot <- supp_pisces_mutated %>%
@@ -1776,8 +1815,8 @@ for(method in methods_no_mean){
                 linetype = "dashed", 
                 color = '#0072B2'
                 ) +
-    labs(x = "mean", 
-         y = method) +
+    labs(x = "Mean Pooling", 
+         y = y_label) +
     theme_minimal_grid(12, rel_small = 1) +
     theme(
       panel.background = element_rect(fill = "white", 
@@ -1802,7 +1841,7 @@ for(method in methods_no_mean){
 
 final_methods_pisces <- plot_grid(plotlist = pisces_scatter_plots_list, ncol =3)
 
-# ggsave(final_methods_pisces, 
+# ggsave(final_methods_pisces,
 #        filename = "sup2_pisces_R2.png",
 #        path = here("figs"),
 #        width = 9,
@@ -1835,23 +1874,23 @@ rev_grouped_multi_mod_DMS <- multi_mod_DMS %>%
 #c("BRCA1 RING", "UBE4B_MOUSE_Klevit2013_singles", "BRCA1_HUMAN_BRCT", "POLG_HCVJF_Sun2014", "BG505 env")
 
 
-rev_grouped_multi_mod_DMS <- rev_grouped_multi_mod_DMS %>%
-  mutate(Dataset = case_when(
-    Dataset == "UBE4B_MOUSE_Klevit2013_singles" ~ "UBE4B MOUSE",
-    Dataset == "BRCA1_HUMAN_BRCT" ~ "BRCA1 BRCT",
-    Dataset == "POLG_HCVJF_Sun2014" ~ "POLG HCVJF",
-    TRUE ~ Dataset
-))
+# rev_grouped_multi_mod_DMS <- rev_grouped_multi_mod_DMS %>%
+#   mutate(Dataset = case_when(
+#     Dataset == "UBE4B_MOUSE_Klevit2013_singles" ~ "UBE4B MOUSE",
+#     Dataset == "BRCA1_HUMAN_BRCT" ~ "BRCA1 BRCT",
+#     Dataset == "POLG_HCVJF_Sun2014" ~ "POLG HCVJF",
+#     TRUE ~ Dataset
+# ))
 
 
 
-rev_grouped_multi_mod_DMS$Model <- factor(rev_grouped_multi_mod_DMS$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
+rev_grouped_multi_mod_DMS$Model <- factor(rev_grouped_multi_mod_DMS$Model, levels = c("ESM2 15B", "ESM2 3B", "ESM2 650M", "ESM2 150M", "ESM2 35M", "ESM2 8M", "ESM1v 650M"))
 
 rev_grouped_multi_mod_DMS$Dataset <- factor(rev_grouped_multi_mod_DMS$Dataset, levels = inc_order)
 
 
 
-color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
 
 #color_dict <- c("15B" = '#254369','650M' = '#4292C6', "150M" = '#9ECAE1')
 ```
@@ -1896,7 +1935,7 @@ DMS_barplot <- rev_grouped_multi_mod_DMS %>%
          
 
 
-  # ggsave(DMS_barplot, 
+  # ggsave(DMS_barplot,
   #        filename = "DMS_barplot.png",
   #        path = here("figs"),
   #        width = 8,
@@ -1915,7 +1954,7 @@ DMS_barplot
 ```{r}
 rev_multi_mod_pisces <- grouped_multi_mod_pisces
 
-rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
+rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("ESM2 15B", "ESM2 3B", "ESM2 650M", "ESM2 150M", "ESM2 35M", "ESM2 8M", "ESM1v 650M"))
 
 
 ```
@@ -1929,12 +1968,12 @@ rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm
 # mean_pisces_150M_650M_15B$param <- factor(mean_pisces_150M_650M_15B$param, levels = c("15B", "650M", "150M"))
 rev_multi_mod_pisces <- grouped_multi_mod_pisces
 
-rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("esm2 15B", "esm2 3B", "esm2 650M", "esm2 150M", "esm2 35M", "esm2 8M", "esm1v 650M"))
+rev_multi_mod_pisces$Model <- factor(rev_multi_mod_pisces$Model, levels = c("ESM2 15B", "ESM2 3B", "ESM2 650M", "ESM2 150M", "ESM2 35M", "ESM2 8M", "ESM1v 650M"))
 
 
 #color_dict <- c("esm2 15B" = '#254369','esm2 650M' = '#4292C6', "esm2 150M" = '#9ECAE1')
 
-color_dict = c("esm1v 650M" = "#D68F6B", "esm2 8M" = "#C6DBEF", "esm2 35M" = "#9ECAE1", "esm2 150M" = "#6BAED6", "esm2 650M" = "#4292C6", "esm2 3B" = "#2171B5", "esm2 15B" = "#084594")
+color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
 
 
 
@@ -1976,13 +2015,13 @@ pisces_barplot <- rev_multi_mod_pisces %>%
          
 
 
-  # ggsave(pisces_barplot, 
+  # ggsave(pisces_barplot,
   #        filename = "pisces_barplot.png",
   #        path = here("figs"),
   #        width = 8,
   #        height = 11,
   #        dpi=600)
-   
+
 
  
 pisces_barplot
@@ -2056,7 +2095,7 @@ fig3_multi_mod <- plot_grid(DMS_multi_boxplot,
                             ncol = 1, 
                             rel_heights = c(1.1, 1))
 
-# ggsave(fig3_multi_mod, 
+# ggsave(fig3_multi_mod,
 #        filename = "fig3_multi_mod.png",
 #        path = here("figs"),
 #        width = 12,
