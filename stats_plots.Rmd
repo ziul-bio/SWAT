@@ -657,61 +657,71 @@ data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral
 
 #ESM1v 650M
 model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM1v 650M")
-slope_ESM1v_650M <- coef(model_ESM1v_650M)[2]
+#slope_ESM1v_650M <- coef(model_ESM1v_650M)[2]
 r_squared_ESM1v_650M <- summary(model_ESM1v_650M)$r.squared
-label_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_ESM1v_650M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_ESM1v_650M))) ~ "     "))
+#label_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_ESM1v_650M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_ESM1v_650M))) ~ "     "))
+label_ESM1v_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_ESM1v_650M)))
+
 
 # ESM2 8M
 model_8M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 8M")
-slope_8M <- coef(model_8M)[2]
+#slope_8M <- coef(model_8M)[2]
 r_squared_8M <- summary(model_8M)$r.squared
-label_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_8M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_8M))) ~ "     "))
+#label_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_8M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_8M))) ~ "     "))
+label_8M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_8M)))
+
 
 #ESM2 35M
 model_35M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 35M")
-slope_35M <- coef(model_35M)[2]
+#slope_35M <- coef(model_35M)[2]
 r_squared_35M <- summary(model_35M)$r.squared
-label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_35M))) ~ "     "))
-
+#label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_35M))) ~ "     "))
+label_35M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_35M)))
 
 #ESM2 150M
 model_150M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 150M")
-slope_150M <- coef(model_150M)[2]
+#slope_150M <- coef(model_150M)[2]
 r_squared_150M <- summary(model_150M)$r.squared
-label_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_150M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_150M))) ~ "     "))
+#label_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_150M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_150M))) ~ "     "))
+label_150M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_150M)))
+
 
 #ESM2 650M
 model_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 650M")
-slope_650M <- coef(model_650M)[2]
+#slope_650M <- coef(model_650M)[2]
 r_squared_650M <- summary(model_650M)$r.squared
-label_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_650M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_650M))) ~ "     "))
+#label_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_650M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_650M))) ~ "     "))
+label_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_650M)))
 
 #ESM2 3B
 model_3B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 3B")
-slope_3B <- coef(model_3B)[2]
+#slope_3B <- coef(model_3B)[2]
 r_squared_3B <- summary(model_3B)$r.squared
-label_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_3B))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_3B))) ~ "     "))
+#label_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_3B))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_3B))) ~ "     "))
+label_3B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_3B)))
+
 
 #ESM2 15B
 model_15B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 15B")
-slope_15B <- coef(model_15B)[2]
+#slope_15B <- coef(model_15B)[2]
 r_squared_15B <- summary(model_15B)$r.squared
-label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_15B))) ~ "     "))
+#label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_15B))) ~ "     "))
+label_15B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_15B)))
 
 
 data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B)),
   Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
-  x = c(1300, 1300, 1300, 1300, 1300, 1300, 620),
-  y = c(.8, .8, .8, .8, .8, .8, .8)
+  x = c(1150, 1200, 1200, 1200, 1200, 1200, 620),
+  y = c(.78, .78, .78, .78, .78, .78, .83)
 )
 
 data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
@@ -726,11 +736,9 @@ print(data_text)
 
 # FOR SUP 8
 
-# kept showing 10^3.44446447 etc, idk how else to remove them
-# if the power is a whole number then show the label, else ""
 label_function <- function(x) {
-    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
-  }
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
 
 
 plot_param <- data_with_size %>%
@@ -740,21 +748,14 @@ plot_param <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(300, NA),
-                       #limits = c(1000, NA),
-                       trans = scales::log_trans(),
-                       breaks = scales::log_breaks(),
-                        
-                       labels = label_function
-                         #trans_format("log10", math_format(10^.x))
-                       ) +
-    scale_y_continuous(limits = c(-.01, 0.9))+
-      # geom_smooth(method = 'lm', 
-      #           formula = y ~ log(x), 
-      #           se = TRUE, 
-      #           fill = NA, 
-      #           #fullrange = TRUE
-      #           ) +
+  coord_trans(x = 'log10')+
+    scale_x_continuous(#limits = c(300, NA), 
+                       labels = label_function,
+                       breaks = c(1000, 10000),
+                       )+
+
+    #scale_y_continuous(limits = c(-.01, 0.9))+
+
   geom_smooth(
       aes(group = Model),
       method = 'lm', 
@@ -775,15 +776,9 @@ plot_param <- data_with_size %>%
   
       )+
   
-
-  #annotate(geom='text', x=c(200), y=c(.8), label=c('Down'), size=50) +
-  #annotate(geom='text', x=c(-7,7), y=c(270, 270), label=c(down, up), size=5) +
-    
+ 
     labs(x = "Sample Size", 
-         y = expression(paste("Predicted ", R^2)),
-         #title = param_vec[1]
-         #title = cat("ESM2", param),
-         #color = ""
+         y = "Performance Score",
          ) +
   guides(color = guide_legend(title = NULL))  +
     theme_minimal_grid(12, rel_small = 1)+
@@ -831,61 +826,69 @@ plot_param
 
 #ESM1v 650M
 pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM1v 650M")
-pslope_ESM1v_650M <- coef(pmodel_ESM1v_650M)[2]
+#pslope_ESM1v_650M <- coef(pmodel_ESM1v_650M)[2]
 pr_squared_ESM1v_650M <- summary(pmodel_ESM1v_650M)$r.squared
-plabel_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_ESM1v_650M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_ESM1v_650M))) ~ "     "))
+#plabel_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_ESM1v_650M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_ESM1v_650M))) ~ "     "))
+plabel_ESM1v_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_ESM1v_650M)))
 
 # ESM2 8M
 pmodel_8M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 8M")
-pslope_8M <- coef(pmodel_8M)[2]
+#pslope_8M <- coef(pmodel_8M)[2]
 pr_squared_8M <- summary(pmodel_8M)$r.squared
-plabel_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_8M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_8M))) ~ "     "))
+#plabel_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_8M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_8M))) ~ "     "))
+plabel_8M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_8M)))
 
 #ESM2 35M
 pmodel_35M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 35M")
-pslope_35M <- coef(pmodel_35M)[2]
+#pslope_35M <- coef(pmodel_35M)[2]
 pr_squared_35M <- summary(pmodel_35M)$r.squared
-plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_35M))) ~ "     "))
+#plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_35M))) ~ "     "))
+plabel_35M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_35M)))
 
 
 #ESM2 150M
 pmodel_150M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 150M")
-pslope_150M <- coef(pmodel_150M)[2]
+#pslope_150M <- coef(pmodel_150M)[2]
 pr_squared_150M <- summary(pmodel_150M)$r.squared
-plabel_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_150M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_150M))) ~ "     "))
+#plabel_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_150M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_150M))) ~ "     "))
+plabel_150M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_150M)))
+
 
 #ESM2 650M
 pmodel_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 650M")
-pslope_650M <- coef(pmodel_650M)[2]
+#pslope_650M <- coef(pmodel_650M)[2]
 pr_squared_650M <- summary(pmodel_650M)$r.squared
-plabel_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_650M))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_650M))) ~ "     "))
+#plabel_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_650M))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_650M))) ~ "     "))
+plabel_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_650M)))
 
 #ESM2 3B
 pmodel_3B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 3B")
-pslope_3B <- coef(pmodel_3B)[2]
+#pslope_3B <- coef(pmodel_3B)[2]
 pr_squared_3B <- summary(pmodel_3B)$r.squared
-plabel_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_3B))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_3B))) ~ "     "))
+#plabel_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_3B))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_3B))) ~ "     "))
+plabel_3B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_3B)))
+
 
 #ESM2 15B
 pmodel_15B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 15B")
-pslope_15B <- coef(pmodel_15B)[2]
+#pslope_15B <- coef(pmodel_15B)[2]
 pr_squared_15B <- summary(pmodel_15B)$r.squared
-plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))), 
-                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_15B))) ~ "     "))
-
+#plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))), 
+#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_15B))) ~ "     "))
+plabel_15B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_15B)))
 
 prot_data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B)),
   Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
-  x = c(130, 200, 200, 200, 200, 200, 110),
-  y = c(.8, .8, .8, .8, .8, .8, .8)
+  x = c(130, 180, 180, 180, 180, 180, 110),
+  y = c(.78, .78, .78, .78, .78, .78, .78)
 )
 
 prot_data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
@@ -899,11 +902,9 @@ print(prot_data_text)
 
 # FOR SUP 9
 
-# kept showing 10^3.44446447 etc, idk how else to remove them
-# if the power is a whole number then show the label, else ""
 label_function <- function(x) {
-    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
-  }
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
 
 
 sup9_prot_length <- data_with_size %>%
@@ -913,21 +914,14 @@ sup9_prot_length <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(60, NA),
-                       #limits = c(1000, NA),
-                       trans = scales::log_trans(),
-                       breaks = scales::log_breaks(),
-                        
-                       labels = label_function
-                         #trans_format("log10", math_format(10^.x))
-                       ) +
-    scale_y_continuous(limits = c(-.01, .9))+
-      # geom_smooth(method = 'lm', 
-      #           formula = y ~ log(x), 
-      #           se = TRUE, 
-      #           fill = NA, 
-      #           #fullrange = TRUE
-      #           ) +
+   coord_trans(x = 'log10')+
+    scale_x_continuous(#limits = c(300, NA), 
+                       labels = label_function,
+                       breaks = c(100, 1000),
+                       )+
+   
+    #scale_y_continuous(limits = c(-.01, .9))+
+
   geom_smooth(
       aes(group = Model),
       method = 'lm', 
@@ -950,7 +944,7 @@ sup9_prot_length <- data_with_size %>%
 
     
     labs(x = "Protein Length", 
-         y = expression(paste("Predicted ", R^2)),
+         y = "Performance Score",
          #title = param_vec[1]
          #title = cat("ESM2", param),
          #color = ""
@@ -997,11 +991,10 @@ sup9_prot_length
 
 # Fig 5
 ```{r}
-# part with datasize
-label_function <- function(x) {
-    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
-  }
 
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
 
 fig_5_datasize <- data_with_size %>%
   filter(Model == 'ESM2 15B') %>%
@@ -1010,19 +1003,12 @@ fig_5_datasize <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(300, NA),
-                       #limits = c(1000, NA),
-                       trans = scales::log_trans(),
-                       breaks = scales::log_breaks(),
+    
 
-                       labels = label_function
-                       ) +
-    scale_y_continuous(limits = c(0, 0.85))+
-
-  #scale_x_log10(limits = c(300, 100000), labels = label_function) +   
+    
   
   geom_smooth(
-      aes(group = Model),
+      #aes(group = Model),
       method = 'lm', 
       formula = y ~ log(x), 
       color = "black",      
@@ -1030,6 +1016,16 @@ fig_5_datasize <- data_with_size %>%
       fill = "gray",
       size = 0.3
     ) +
+  
+
+  coord_trans(x = 'log10')+
+    scale_x_continuous(#limits = c(300, NA), 
+                       labels = label_function,
+                       breaks = c(1000, 10000),
+                       )+
+
+    scale_y_continuous(limits = c(0, 0.85))+
+  
     geom_point(alpha = 1, size = 2
               ) +
     
@@ -1041,7 +1037,8 @@ fig_5_datasize <- data_with_size %>%
       size = .6
       )+
     labs(x = "Sample Size", 
-         y = expression(paste("Predicted ", R^2)),
+         y = "Performance Score"
+           #expression(paste(R^2)),
 
          ) +
   guides(color = guide_legend(title = NULL))  +
@@ -1097,21 +1094,14 @@ fig5_protlen <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-    scale_x_continuous(limits = c(60, NA),
-                       #limits = c(1000, NA),
-                       trans = scales::log_trans(),
-                       breaks = scales::log_breaks(),
-                        
-                       labels = label_function
-                         #trans_format("log10", math_format(10^.x))
-                       ) +
+  coord_trans(x = 'log10')+
+    scale_x_continuous(#limits = c(300, NA), 
+                       labels = label_function,
+                       breaks = c(100,1000),
+                       )+
+
     scale_y_continuous(limits = c(0, 0.85))+
-      # geom_smooth(method = 'lm', 
-      #           formula = y ~ log(x), 
-      #           se = TRUE, 
-      #           fill = NA, 
-      #           #fullrange = TRUE
-      #           ) +
+
   geom_smooth(
       aes(group = Model),
       method = 'lm', 
@@ -1134,7 +1124,7 @@ fig5_protlen <- data_with_size %>%
       )+
 
     labs(x = "Protein Length", 
-         y = expression(paste("Predicted ", R^2)),
+         y = NULL,
          ) +
   guides(color = guide_legend(title = NULL))  +
     theme_minimal_grid(12, rel_small = 1)+
@@ -1158,13 +1148,12 @@ fig5_protlen <- data_with_size %>%
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
-        #hjust = 0,     # Adjust label alignment
-    #vjust = 0
+
         )
 
 
-# ggsave(sup9_prot_length,
-#        filename = "sup9.png",
+# ggsave(fig5_protlen,
+#        filename = "fig5_protlen.png",
 #        path = here("figs"),
 #        width = 8,
 #        height = 5,
@@ -1180,7 +1169,7 @@ fig5_assembled <- plot_grid(fig_5_datasize,
                   fig5_protlen,
                   labels = c('A', 'B'), 
                   label_size = 12, 
-                  rel_widths = c(1, 1.4)
+                  rel_widths = c(1, 1.35)
                   )
 
 # ggsave(fig5_assembled,
