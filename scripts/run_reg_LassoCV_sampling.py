@@ -34,7 +34,6 @@ def features_scaler(features):
     return pd.DataFrame(scaled_features)
 
 
-
 def run_regression(features, target):
     '''this version computes y_pred for train and test sets'''
     # Initialize lists for storing results
@@ -122,11 +121,28 @@ def save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_
 
 
 
-def run_regression_with_sampling(input_file_path, path_meta_data):
+def run_regression_with_sampling(path_compressed_embed_file, path_meta_data):
     '''Run regression on compressed embeddings'''
     results = pd.DataFrame()
+
     print('Reading the embeddings...')
-    embed_df = pd.read_pickle(input_file_path)
+    # load and merge the data with features
+    if path_compressed_embed_file.endswith('.pkl'):
+        embed = pd.read_pickle(path_compressed_embed_file)
+        embed_df = pd.DataFrame.from_dict(embed).T.reset_index()
+        embed_df.rename(columns={'index': 'ID'}, inplace=True)
+
+    elif path_compressed_embed_file.endswith('.pt'):
+        embed = torch.load(path_compressed_embed_file, weights_only=True)
+        embed_df = pd.DataFrame.from_dict(embed).T.reset_index()
+        embed_df.rename(columns={'index': 'ID'}, inplace=True)
+
+    elif path_compressed_embed_file.endswith('.csv'):
+        embed_df = pd.read_csv(path_compressed_embed_file)
+    else:
+        raise ValueError('Invalid file format. Please provide either a .pkl, .pt or a .csv file with the first column named ID')
+
+
     
     sample_sizes = [32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000, 1000000]
     for idx, ss in enumerate(sample_sizes): 
@@ -152,7 +168,7 @@ def run_regression_with_sampling(input_file_path, path_meta_data):
 ############################# Run Predictions #############################
 
 def main():
-    parser = argparse.ArgumentParser(description="Run regression for different target datasets and layers")
+    parser = argparse.ArgumentParser(description="Run regression with downsampling")
     parser.add_argument("-i", "--input", type=str, help="Path to the input file")
     parser.add_argument("-m", "--metadata", type=str, help="Target name in the metadata")
     parser.add_argument("-o", "--output", type=str, help="Path to the output file")
@@ -162,6 +178,10 @@ def main():
     input_file_path = args.input
     path_meta_data = args.metadata
     output = args.output
+
+    output_dir = os.path.dirname(output)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
    
 
     results = run_regression_with_sampling(input_file_path, path_meta_data)

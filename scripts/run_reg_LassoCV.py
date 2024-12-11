@@ -129,12 +129,26 @@ def run_regression_on_compressed_files(path_compressed_embed_file, path_meta_dat
     meta_data = pd.read_csv(path_meta_data)
     results = pd.DataFrame()
     method = path_compressed_embed_file.split('_')[-1].split('.')[0]
-    
     print('Results for method:', method)
+
     # load and merge the data with features
-    embed = pd.read_pickle(path_compressed_embed_file)
-    embed_df = pd.DataFrame.from_dict(embed, orient='index').reset_index()
-    embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    if path_compressed_embed_file.endswith('.pkl'):
+        embed = pd.read_pickle(path_compressed_embed_file)
+        embed_df = pd.DataFrame.from_dict(embed).T.reset_index()
+        embed_df.rename(columns={'index': 'ID'}, inplace=True)
+    
+    elif path_compressed_embed_file.endswith('.pt'):
+        embed = torch.load(path_compressed_embed_file, weights_only=True)
+        embed_df = pd.DataFrame.from_dict(embed).T.reset_index()
+        embed_df.rename(columns={'index': 'ID'}, inplace=True)
+        
+    elif path_compressed_embed_file.endswith('.csv'):
+        embed_df = pd.read_csv(path_compressed_embed_file)
+
+    else:
+        raise ValueError('Invalid file format. Please provide either a .pkl, .pt or a .csv file with the first column named ID')
+
+
     data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
     target = data['target']
     features = data.iloc[:, meta_data.shape[1]:]
