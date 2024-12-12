@@ -72,21 +72,21 @@ do
         echo "Processing embeddings: $dts"
         echo 'Running compression for method: ' $method
         #echo "Esm1v 650M"                                  
-        #python scripts/run_reg_LassoCV.py -i "embeddings/DMS_compressed/${dts}_esm2_150M_compressed/embed_layer_30_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o "results/lassoCV_DMS/esm2_150M_all/${dts}_esm2_150M_${method}.csv"
+        #python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/${dts}_esm2_150M_compressed/embed_layer_30_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o "results/lassoCV_DMS/esm2_150M_all/${dts}_esm2_150M_${method}.csv"
         
         #echo "Esm2 150M"                                  
-        #python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm1v_650M/${dts}_esm1v_650M/embed_layer_33_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o "results/lassoCV_DMS/esm1v_650M/${dts}_esm1v_650M_${method}.csv"
+        #python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm1v_650M/${dts}_esm1v_650M/embed_layer_33_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o "results/lassoCV_DMS/esm1v_650M/${dts}_esm1v_650M_${method}.csv"
         
         echo "Esm2 8M"                                  
-        python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_8M/${dts}_esm2_8M/embed_layer_6_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o        "results/lassoCV_DMS/esm2_8M/${dts}_esm2_8M_${method}.csv"
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_8M/${dts}_esm2_8M/embed_layer_6_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o        "results/lassoCV_DMS/esm2_8M/${dts}_esm2_8M_${method}.csv"
         echo "Esm2 35M"                                  
-        python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_35M/${dts}_esm2_35M/embed_layer_12_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o     "results/lassoCV_DMS/esm2_35M/${dts}_esm2_35M_${method}.csv"
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_35M/${dts}_esm2_35M/embed_layer_12_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o     "results/lassoCV_DMS/esm2_35M/${dts}_esm2_35M_${method}.csv"
         echo "Esm2 650M"                                  
-        python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_650M/${dts}_esm2_650M/embed_layer_33_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o   "results/lassoCV_DMS/esm2_650M/${dts}_esm2_650M_${method}.csv"
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_650M/${dts}_esm2_650M/embed_layer_33_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o   "results/lassoCV_DMS/esm2_650M/${dts}_esm2_650M_${method}.csv"
         echo "Esm2 3B"                                  
-        python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_3B/${dts}_esm2_3B/embed_layer_36_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o       "results/lassoCV_DMS/esm2_3B/${dts}_esm2_3B_${method}.csv"                                      
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_3B/${dts}_esm2_3B/embed_layer_36_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o       "results/lassoCV_DMS/esm2_3B/${dts}_esm2_3B_${method}.csv"                                      
         echo "Esm2 15B"                                  
-        python scripts/run_reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_15B/${dts}_esm2_15B/embed_layer_48_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o     "results/lassoCV_DMS/esm2_15B/${dts}_esm2_15B_${method}.csv"    
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_all_compressed/esm2_15B/${dts}_esm2_15B/embed_layer_48_${method}.pkl" -m "data/metadata_DMS/${dts}_metadata.csv" -o     "results/lassoCV_DMS/esm2_15B/${dts}_esm2_15B_${method}.csv"    
         echo " "                                  
     done
 done
