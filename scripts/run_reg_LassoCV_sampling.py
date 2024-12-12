@@ -143,25 +143,25 @@ def run_regression_with_sampling(path_compressed_embed_file, path_meta_data):
         raise ValueError('Invalid file format. Please provide either a .pkl, .pt or a .csv file with the first column named ID')
 
 
-    
-    sample_sizes = [32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000, 1000000]
+    # Define the sample sizes
+    sample_sizes = [32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000, 1000000, 3200000]
+    meta_data = pd.read_csv(path_meta_data)
     for idx, ss in enumerate(sample_sizes): 
-        meta_data = pd.read_csv(path_meta_data)
         ss = min(ss, len(meta_data))
         if sample_sizes[idx] <= len(meta_data) or sample_sizes[idx-1] < len(meta_data) and sample_sizes[idx+1] > len(meta_data):
             print('\nResults for sample size:', ss)
-            meta_data = meta_data.sample(n=ss, random_state=42)
-    
-            data = meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
+            sampled_meta_data = meta_data.sample(n=ss, random_state=42)
+
+            data = sampled_meta_data.merge(embed_df, how='inner', left_on='ID', right_on='ID')
             target = data['target']
-            features = data.iloc[:, meta_data.shape[1]:]
+            features = data.iloc[:, sampled_meta_data.shape[1]:]
             features = features_scaler(features)
-            # run regression
+            # # run regression
             r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs = run_regression(features, target)
             res = save_results(r2s_train, maes_train, rmses_train, r2s_test, maes_test, rmses_test, rhos_train, rhos_test, folds, num_nonzero_coefs)
             res['Sample_size'] = ss
             results = pd.concat([results, res], axis=0)
-
+         
     return results
 
 
