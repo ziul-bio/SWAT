@@ -5,7 +5,9 @@ set -e
 #taskset -c 50-112 bash run_lassoCV_sampling.sh 
 
 #models=('esm1v_650M' 'esm2_8M' 'esm2_35M' 'esm2_150M' 'esm2_650M' 'esm2_3B' 'esm2_15B')
-models=('esmc_300M' 'esmc_600M')
+
+#models=('esmc_300M' 'esmc_600M')
+models=('amplify_120M' 'amplify_350M')
 
 for model in "${models[@]}" 
 do

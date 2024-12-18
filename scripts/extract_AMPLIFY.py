@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 import argparse
@@ -7,7 +8,7 @@ from transformers import AutoModel, AutoTokenizer
 
 
 # Usage:
-#python extract_AMPLIFY.py -i data/DMS_mut_sequences/BLAT_ECOLX_Tenaillon2013_muts.fasta -m AMPLIFY_120M -o test/Blat_embeddings_test2.pt
+#python scripts/extract_AMPLIFY.py -i test/test.fasta -m ../AMPLIFY/amplify_checkpoints/AMPLIFY_120M -o test/embeddings/Blat_mean_embeddings_test3.pt
 
 
 # load the models locally
@@ -15,124 +16,49 @@ def AMPLIFY(model_checkpoint, device):
     model = AutoModel.from_pretrained(model_checkpoint, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_checkpoint, trust_remote_code=True)
     model = model.to(device)
+    model.eval()
     print("Model loaded on:", model.device)
     return model, tokenizer
 
 
-class RMSNorm(nn.Module):
-    def __init__(self, dim: int, eps: float = 1e-6):
-        """
-        Initialize the RMSNorm normalization layer.
+def extract_mean_representations(model, tokenizer, fasta_file, device):
 
-        Args:
-            dim (int): The dimension of the input tensor.
-            eps (float, optional): A small value added to the denominator for numerical stability. Default is 1e-6.
-
-        Attributes:
-            eps (float): A small value added to the denominator for numerical stability.
-            weight (nn.Parameter): Learnable scaling parameter.
-
-        """
-        super().__init__()
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
-
-    def forward(self, x):
-        """
-        Forward pass through the RMSNorm layer.
-
-        Args:
-            x (torch.Tensor): The input tensor.
-
-        Returns:
-            torch.Tensor: The output tensor after applying RMSNorm.
-
-        """
-        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps) * self.weight
-
-
-class FastaDataLoader:
-    """
-    Data loader for reading a FASTA file and returning batches of sequence IDs, lengths, and tokenized sequences.
-    Designed to work with tqdm.
-    
-    Args:
-    - fasta_file (str): Path to the FASTA file.
-    - batch_size (int): Number of sequences per batch.
-    - model (object): Model object with a `_tokenize` method for tokenizing sequences.
-    """
-    def __init__(self, fasta_file, batch_size, tokenizer):
-        self.fasta_file = fasta_file
-        self.batch_size = batch_size
-        self.tokenizer=tokenizer
-        self.sequences = list(SeqIO.parse(fasta_file, "fasta"))
-        self.total = len(self.sequences)
-
-    def __len__(self):
-        return (self.total + self.batch_size - 1) // self.batch_size
-
-    def __iter__(self):
-        ids, lengths, seqs = [], [], []
-        for seq in self.sequences:
-            ids.append(seq.id)
-            lengths.append(len(seq.seq))
-            seqs.append(str(seq.seq))
-            
-            if len(ids) == self.batch_size:
-                tokens = self.tokenizer(seqs, return_tensors="pt", padding=True, truncation=False)
-                tokens = tokens['input_ids']
-                yield ids, lengths, tokens
-                ids, lengths, seqs = [], [], []
-
-        # Yield any remaining sequences if they don't fill the last batch
-        if ids:
-            tokens = self.tokenizer(seqs, return_tensors="pt", padding=True, truncation=False)
-            tokens = tokens['input_ids']
-            #tokens = tokens['input_ids']
-            yield ids, lengths, tokens
-
-
-def extract_mean_representations3(model, tokenizer, fasta_file, batch_size=2, device="cpu"):
-    """
-    Extracts mean representations for sequences in a FASTA file using the last hidden layer
-    of a model, applying LayerNorm or RMSNorm to the last hidden layer.
-
-    Args:
-        model: The model to extract embeddings from.
-        tokenizer: The tokenizer to process the sequences.
-        fasta_file: Path to the FASTA file.
-        batch_size: Number of sequences per batch.
-        device: Device to run computations on (e.g., "cpu" or "cuda").
-
-    Returns:
-        A dictionary with sequence IDs as keys and their LayerNorm mean representations.
-    """
     mean_representations = {}
-    data_loader = FastaDataLoader(fasta_file, batch_size=batch_size, tokenizer=tokenizer)
-    
-    # Determine the hidden size from the model
-    hidden_size = model.config.hidden_size if hasattr(model, "config") else None
-    
-    # Initialize LayerNorm and move to correct device
-    layer_norm = nn.LayerNorm(hidden_size, elementwise_affine=True).to(device) if hidden_size else None
-    
-    for batch_ids, batch_lengths, batch_tokens in tqdm(data_loader, desc="Processing batches", leave=False):
-        batch_tokens = batch_tokens.to(device)  # Ensure tokens are on the correct device
-        output = model(batch_tokens, output_hidden_states=True)
-      
-        embeddings = output.hidden_states[-1]  # Extract the last hidden layer
-        
-        # Apply LayerNorm if initialized
-        if layer_norm:
-            embeddings = layer_norm(embeddings)
+    print(f"Reading sequences from {fasta_file} FASTA file")
+    sequences = list(SeqIO.parse(fasta_file, "fasta"))
+    print(f'Number of sequences to process: {len(sequences)}')
 
-        for i, ID in enumerate(batch_ids):
-            # Extract the normalized last hidden states for the sequence
-            representations = embeddings[i, 1:batch_lengths[i] + 1, :].detach().to('cpu') 
-            # Compute the mean representation of the sequence
-            mean_representations[ID] = representations.mean(dim=0)
+    with torch.no_grad():  # Disable gradient calculations
+
+        for seq in tqdm(sequences, desc="Processing sequences", leave=False):
+            seq_id = seq.id
+            sequence = str(seq.seq)
+            seq_length = len(sequence)
+            
+            # Tokenize with padding and truncation
+            tokens = tokenizer(sequence, return_tensors="pt", padding=False, truncation=False)
+            tokens = tokens.to(device)
+            
+            # Get model output
+            output = model(tokens['input_ids'], output_hidden_states=True)
+
+            # Get the last hidden state
+            embeddings = output.hidden_states[-1][0]  # Last layer, first sequence (batch size = 1)
+
+            # Apply LayerNorm to embeddings
+            hidden_size = model.config.hidden_size if hasattr(model, "config") else None
+            layer_norm = nn.LayerNorm(hidden_size, elementwise_affine=True).to(device) if hidden_size else None
+            if layer_norm:
+                embeddings = layer_norm(embeddings)
+        
+            # Extract the embeddings for the sequence, excluding special tokens
+            representations = embeddings[1:seq_length+1, :].detach().to('cpu')  # Excluding [CLS] and padding
+            
+            # Compute mean representation of the sequence
+            mean_representations[seq_id] = representations.mean(dim=0)
     
     return mean_representations
+
 
 
 
@@ -157,19 +83,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load the model based on the checkpoint identifier
-    if model_checkpoint == 'AMPLIFY_350M':
-        model, tokenizer = AMPLIFY('/stor/work/Wilke/luiz/AMPLIFY/amplify_checkpoints/AMPLIFY_120M', device)
-       
-    if model_checkpoint == 'AMPLIFY_350M':
-        model, tokenizer = AMPLIFY('/stor/work/Wilke/luiz/AMPLIFY/amplify_checkpoints/AMPLIFY_350M', device)
-      
-    else:
-        print("Model not found!")
-        print("Choose a valid model checkpoint: 'AMPLIFY_120M' or 'AMPLIFY_350M'")
-        exit(1)
+    model, tokenizer = AMPLIFY(model_checkpoint, device)
 
     # Extract representations
-    result = extract_mean_representations(model, tokenizer, path_input_fasta_file, batch_size=4, device=device)
+    result = extract_mean_representations(model, tokenizer, path_input_fasta_file, device=device)
     
     # Save results
     torch.save(result, output_file)

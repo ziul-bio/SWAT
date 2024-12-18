@@ -36,6 +36,8 @@ def ESMC_600M_202412(model_path: str, device: torch.device | str = "cpu"):
     return model
 
 
+
+
 class FastaDataLoader:
     """
     Data loader for reading a FASTA file and creating batches based on a token limit.

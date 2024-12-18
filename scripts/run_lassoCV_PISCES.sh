@@ -4,15 +4,11 @@ set -e
 # usage
 #taskset -c 50-112 bash run_lassoCV.sh 
 
-# targets=(
-#     'SS_H' 'SS_E' 'SS_Coil' 
-#     'PCP_Charge' 'PCP_Hydrophobicity' 'PCP_Instability_index' 'PCP_Isoelectric_point' 'PCP_length' 'PCP_mW_kDa' 
-#     'PCP_AAfreq_Ala' 'PCP_AAfreq_Cys' 'PCP_AAfreq_Leu')
-
-
 targets=(
-    'PCP_length' 'PCP_mW_kDa' 
+    'SS_H' 'SS_E' 'SS_Coil' 
+    'PCP_Charge' 'PCP_Hydrophobicity' 'PCP_Instability_index' 'PCP_Isoelectric_point' 'PCP_length' 'PCP_mW_kDa' 
     'PCP_AAfreq_Ala' 'PCP_AAfreq_Cys' 'PCP_AAfreq_Leu')
+
 
 # Define the list of methods to loop through
 #methods=('iDCT1' 'iDCT2' 'iDCT3' 'iDCT4' 'iDCT5' 'mean' 'bos' 'maxPool' 'pca1' 'pca2' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
@@ -33,10 +29,15 @@ do
         # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_3B/embed_pisces_${method}.pkl" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esm2_3V/${target}_esm2_3V_${method}.csv"
         # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_15B/embed_pisces_${method}.pkl" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/${target}_esm2_15B_layer_48_${method}.csv"                
 
-        #python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_300M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_300M/${target}_esmc_300M_${method}.csv"                
-        #python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_600M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_600M/${target}_esmc_600M_${method}.csv"                
-        python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_6B/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_6B/${target}_esmc_6B_${method}.csv"                
+        # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_300M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_300M/${target}_esmc_300M_${method}.csv"                
+        # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_600M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_600M/${target}_esmc_600M_${method}.csv"                
+        # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esmc_6B/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/esmc_6B/${target}_esmc_6B_${method}.csv"                
         
+        # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/amplify_120M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/amplify_120M/${target}_amplify_120M_${method}.csv"                
+        # python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/amplify_350M/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/amplify_350M/${target}_amplify_350M_${method}.csv"                
+        
+        python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/amplify_120M_no_layernorm/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/amplify_120M_no_layernorm/${target}_amplify_120M_no_layernorm_${method}.csv"                
+        python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/amplify_350M_no_layernorm/embed_pisces_${method}.pt" -m "data/PISCES_metadata/${target}.csv" -o "results/lassoCV/PISCES/amplify_350M_no_layernorm/${target}_amplify_350M_no_layernorm_${method}.csv"                
         
         
         echo ' '                      
