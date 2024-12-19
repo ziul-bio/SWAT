@@ -92,25 +92,24 @@ class FastaDataLoader:
 
 def extract_mean_representations(model, fasta_file):
     mean_representations = {}
-    #data_loader = FastaDataLoader(fasta_file, batch_size=batch_size, model=model)
     data_loader = FastaDataLoader(fasta_file, model=model)
     
-    for batch_ids, batch_lengths, batch_tokens in tqdm(data_loader, desc="Processing batches", leave=False):
-        output = model(batch_tokens)
-        logits, embeddings, hiddens = (
-            output.sequence_logits,
-            output.embeddings,
-            output.hidden_states,
-        )
+    with torch.no_grad():  # Disable gradient calculations
+        for batch_ids, batch_lengths, batch_tokens in tqdm(data_loader, desc="Processing batches", leave=False):
+            output = model(batch_tokens)
+            logits, embeddings, hiddens = (
+                output.sequence_logits,
+                output.embeddings,
+                output.hidden_states,
+            )
 
-        for i, ID in enumerate(batch_ids):
-        # Extract the last hidden states for the sequence
-            representations =  embeddings[i, 1:batch_lengths[i]+1, :].detach().to('cpu') 
-            # compute mean representation of the sequence
-            mean_representations[ID] = (representations.mean(dim=0))
+            for i, ID in enumerate(batch_ids):
+            # Extract the last hidden states for the sequence
+                representations =  embeddings[i, 1:batch_lengths[i]+1, :].detach().to('cpu') 
+                # compute mean representation of the sequence
+                mean_representations[ID] = (representations.mean(dim=0))
     
     return mean_representations
-
 
 
 def main():

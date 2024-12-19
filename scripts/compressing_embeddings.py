@@ -90,71 +90,71 @@ def load_per_tok_embeds(embed_dir, compression_method, rep_layer):
             label = file.split('.pt')[0]
 
             if compression_method == 'mean':
-                embed = np.array(torch.load(file_path)['mean_representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['mean_representations'][rep_layer])
                 embedding = embed
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'bos':
-                embed = np.array(torch.load(file_path)['bos_representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['bos_representations'][rep_layer])
                 embedding = embed
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'maxPool':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = embed.max(axis=0)
                 embedding = embed_trans
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca1':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
                 embedding = embed_trans[0]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca2':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
                 embedding = embed_trans[1]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'pca1-2':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = pca_transformation(embed)
                 embedding = embed_trans.reshape(-1)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'rbf1':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = kernel_pca_rbf_transformation(embed)
                 embedding = embed_trans[0]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'rbf2':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = kernel_pca_rbf_transformation(embed)
                 embedding = embed_trans[1]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'sigmoid1':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = kernel_pca_sigmoid_transformation(embed)
                 embedding = embed_trans[0]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'sigmoid2':
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embed_trans = kernel_pca_sigmoid_transformation(embed)
                 embedding = embed_trans[1]
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT1': #v01 original implementation
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embedding = quant2D(embed, n=5, m=44)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT2': #v02 (n=10, m=64), final dimention 640 same as esm2_150M
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=64) 
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT3': #v03 (n=10, m=128), final dimention 1280 same as esm2_650M 
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=128) 
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT4': #v04 (n=10, m=512), final dimention 5120 same as esm2_15B
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=512)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             elif compression_method == 'iDCT5': #v05 (n=10, m=640), final dimention 6400
-                embed = np.array(torch.load(file_path)['representations'][rep_layer])
+                embed = np.array(torch.load(file_path, weights_only=True)['representations'][rep_layer])
                 embedding = quant2D(embed, n=10, m=640)
                 np.save(f"{tmp_folder}/{label}.npy", embedding)
             else:

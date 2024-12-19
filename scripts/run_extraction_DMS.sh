@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-#taskset -c 85-112 bash run_compression.sh
-
 # Sequences longer than 1022
 DMS_longer=(
     'BRCA1_HUMAN_RING' 'UBE4B_MOUSE_Klevit2013_singles'
@@ -24,7 +22,8 @@ DMS_1022=(
     )
 
 
-DMS_all=(
+# DMS all
+DMS=(
     'YAP1_HUMAN_Fields2012_singles' 'BRCA1_HUMAN_RING'
     'UBE4B_MOUSE_Klevit2013_singles' 'BLAT_ECOLX_Tenaillon2013'
     'PABP_YEAST_Fields2013_singles' 'GAL4_YEAST_Shendure2015'
@@ -44,6 +43,7 @@ DMS_all=(
     'BG505_env_Bloom2018' 'PABP_YEAST_Fields2013_doubles'
 )
 
+
 missing_files=(
     'BLAT_ECOLX_Ostermeier2014' 'BLAT_ECOLX_Ranganathan2015'
     'BLAT_ECOLX_Palzkill2012' 'BLAT_ECOLX_Tenaillon2013'
@@ -51,30 +51,70 @@ missing_files=(
 
 
 
-# Define the list of methods to loop through
-#methods=('iDCT1' 'iDCT2' 'iDCT3' 'iDCT4' 'iDCT5' 'mean' 'bos' 'maxPool' 'pca1' 'pca2' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
-methods=('mean')
-
-directories=("${missing_files[@]}")
-
-# Loop through each directory
-for dir in "${directories[@]}"
+for file in "${DMS_1022[@]}"
 do
-    echo "Processing embeddings: $dir"
+    echo "Extracting embedding for $file with esm1v_t33_650M_UR90S_1"
+    python scripts/extract_esm2.py esm1v_t33_650M_UR90S_1 "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm1v_650M/${file}" --repr_layers 33 --include mean &
 
-    # Loop through each method in the list
-    for method in "${methods[@]}"
-    do
-        echo 'Running compression for method: ' $method
-        # DMS
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm1v_650M/${dir}/" -o "embeddings/DMS_compressed/esm1v_650M/${dir}/" -c $method -l 33
-    
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_8M/${dir}/" -o "embeddings/DMS_compressed/esm2_8M/${dir}/" -c $method -l 6
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_35M/${dir}/" -o "embeddings/DMS_compressed/esm2_35M/${dir}/" -c $method -l 12
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_150M/${dir}/" -o "embeddings/DMS_compressed/esm2_150M/${dir}/" -c $method -l 30
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_650M/${dir}/" -o "embeddings/DMS_compressed/esm2_650M/${dir}/" -c $method -l 33
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_3B/${dir}/" -o "embeddings/DMS_compressed/esm2_3B/${dir}/" -c $method -l 36
-        time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_15B/${dir}/" -o "embeddings/DMS_compressed/esm2_15B/${dir}/" -c $method -l 48
-                                                             
-    done
+    echo "Extracting embedding for $file with esm2_t6_8M_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t6_8M_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_8M/${file}" --repr_layers 6 --include mean &
+
+    echo "Extracting embedding for $file with esm2_t12_35M_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t12_35M_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_35M/${file}" --repr_layers 12 --include mean &
+
+    echo "Extracting embedding for $file with esm2_t30_150M_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t30_150M_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_150M/${file}" --repr_layers 30 --include bos mean per_tok &
+
+    echo "Extracting embedding for $file with esm2_t33_650M_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t33_650M_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_650M/${file}" --repr_layers 33 --include mean
+
+    echo "Extracting embedding for $file with esm2_t36_3B_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t36_3B_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_3B/${file}" --repr_layers 36 --include mean
+
+    echo "Extracting embedding for $file with esm2_t48_15B_UR50D"
+    python scripts/extract_esm2.py ../ESM2_checkpoints/esm2_t48_15B_UR50D.pt "data/DMS_mut_sequences/${file}_muts.fasta" "embeddings/DMS/esm2_15B/${file}" --repr_layers 48 --include mean --nogpu
+  
 done
+
+
+
+       
+                
+
+
+        
+           
+
+
+
+       
+               
+
+       
+      
+        
+
+       
+             
+           
+
+         
+      
+        
+
+ 
+          
+           
+
+   
+                      
+        
+
+ 
+        
+
+   
+          
+
+           
+ 
