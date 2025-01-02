@@ -10,7 +10,8 @@ import time
 from tqdm import tqdm
 
 ## Usage
-# python scripts/merge_embeddings.py -e embeddings/PISCES/esmc_6B -o embeddings/PISCES_compressed/esmc_6B/embed_pisces_mean.pt -m esmc_6B
+# python scripts/merge_embeddings.py -e embeddings/PISCES/esmc_6B -o embeddings/PISCES_compressed/esmc_6B/embed_pisces_mean.pt -m esmc
+
 # python scripts/merge_embeddings.py -e embeddings/HIS7/esm2_8M_mean -o embeddings/HIS7_compressed/esm2_8M/embed_pisces_mean.pt -m esm2_8M
 
 
@@ -70,7 +71,7 @@ def load_embeds_from_ESMC(base_dir):
         embed = torch.load(file, weights_only=True)
         # Very important, I am just taking the mean, because I alreary removed the BOS and EOS token when saving the embeddings
         # Next time, I am planning on keeping the BOS and EOS when downloading the embeddings with the forge
-        mean_representations = embed.mean(0)
+        mean_representations = embed[1:-1, :].mean(0) # I fixed the extraction, SO NOW THE EMBEDDINGS HAVE BOS AND EOS TOKENS, so I need to remove them
         embeddings[label] = mean_representations
 
     return embeddings
@@ -82,12 +83,12 @@ def main(embed_dir, output_file, model):
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    if model == 'esmc_6B':
+    if model == 'esmc':
         embeds = load_embeds_from_ESMC(embed_dir)
         print(f"Saving embeddings to {output_file}")
         torch.save(embeds, output_file)
 
-    if 'esm2' in model or 'esm1v' in model:
+    elif 'esm2' in model or 'esm1v' in model:
         embeds = load_mean_embed_esm2(embed_dir, model)
         print(f"Saving embeddings to {output_file}")
         torch.save(embeds, output_file)
@@ -104,11 +105,9 @@ if __name__ == "__main__":
     argparser.add_argument('-e', '--embed_dir', type=str, required=True)
     argparser.add_argument('-o', '--output_file', type=str, required=True)
     argparser.add_argument('-m', '--model', type=str, required=True)
-    #argparser.add_argument('-l', '--rep_layer', type=int, required=True)
     args = argparser.parse_args()
 
     model = args.model
-    #rep_layer = args.rep_layer
     embed_dir = args.embed_dir
     output = args.output_file
 

@@ -11,6 +11,12 @@ DMS_longer=(
     'BRCA1_HUMAN_BRCT' 'POLG_HCVJF_Sun2014'
 )
 
+# esmc 6B does not accept sequences longer than 2048
+DMS_longer2=(
+    'BRCA1_HUMAN_RING' 'UBE4B_MOUSE_Klevit2013_singles'
+    'BRCA1_HUMAN_BRCT'
+)
+
 DMS_1022=(
     'YAP1_HUMAN_Fields2012_singles'
     'BLAT_ECOLX_Tenaillon2013' 'PABP_YEAST_Fields2013_singles' 'GAL4_YEAST_Shendure2015' 
@@ -49,58 +55,58 @@ DMS_all=(
 
 
 # DMS
-missing_files=(
-    'BLAT_ECOLX_Ostermeier2014' 'BLAT_ECOLX_Ranganathan2015'
-    'BLAT_ECOLX_Palzkill2012' 'BLAT_ECOLX_Tenaillon2013'
-    'TIM_THEMA' 'B3VI55_LIPSTSTABLE' 'UBC9_HUMAN_Roth2017')
+missing_files=('HG_FLU_Bloom2016' 'BF520_env_Bloom2018')
 
 
 # Define the list of methods to loop through
 #methods=('bos' 'maxPool' 'iDCT1' 'iDCT2' 'iDCT3' 'iDCT4' 'iDCT5' 'pca1' 'pca2' 'rbf1' 'rbf2' 'sigmoid1' 'sigmoid2')
 methods=('mean')
 
-datasets=("${DMS_1022[@]}")
+datasets=("${missing_files[@]}")
 
 # Loop through each dtsectory
 for dts in "${datasets[@]}"
 do
     for method in "${methods[@]}"
     do
-        echo "Processing embeddings: $dts"
-        echo 'Running compression for method: ' $method
+        echo "Processing dataset: $dts"
+        echo 'Running regression for method: ' $method
         
-        echo "Esm1v 650M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm1v_650M/${dts}/embed_layer_33_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm1v_650M/${dts}_${method}.csv"
+        # echo "Esm1v 650M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm1v_650M/${dts}/embed_layer_33_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm1v_650M/${dts}_${method}.csv"
         
-        echo "Esm2 8M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_8M/${dts}/embed_layer_6_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_8M/${dts}_${method}.csv"
+        # echo "Esm2 8M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_8M/${dts}/embed_layer_6_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_8M/${dts}_${method}.csv"
         
-        echo "Esm2 35M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_35M/${dts}/embed_layer_12_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_35M/${dts}_${method}.csv"
+        # echo "Esm2 35M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_35M/${dts}/embed_layer_12_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_35M/${dts}_${method}.csv"
         
-        echo "Esm2 150M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_150M/${dts}/embed_layer_30_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_150M/${dts}_${method}.csv"
+        # echo "Esm2 150M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_150M/${dts}/embed_layer_30_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_150M/${dts}_${method}.csv"
         
-        echo "Esm2 650M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_650M/${dts}/embed_layer_33_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_650M/${dts}_${method}.csv"
+        # echo "Esm2 650M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_650M/${dts}/embed_layer_33_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_650M/${dts}_${method}.csv"
         
-        echo "Esm2 3B"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_3B/${dts}/embed_layer_36_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_3B/${dts}_${method}.csv"                                      
+        # echo "Esm2 3B"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_3B/${dts}/embed_layer_36_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_3B/${dts}_${method}.csv"                                      
         
-        echo "Esm2 15B"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_15B/${dts}/embed_layer_48_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_15B/${dts}_${method}.csv"    
+        # echo "Esm2 15B"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esm2_15B/${dts}/embed_layer_48_${method}.pkl" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esm2_15B/${dts}_${method}.csv"    
         
-        echo "Esmc 300M"                                  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esmc_300M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esmc_300M/${dts}_${method}.csv"    
+        # echo "Esmc 300M"                                  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esmc_300M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esmc_300M/${dts}_${method}.csv"    
         
-        echo "Esmc 600M"  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esmc_600M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esmc_600M/${dts}_${method}.csv"    
+        # echo "Esmc 600M"  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esmc_600M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esmc_600M/${dts}_${method}.csv"    
         
-        echo "AMPLIFY 120M"  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/AMPLIFY_120M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/amplify_120M/${dts}_${method}.csv"    
+        echo "Esmc 6B"  
+        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/esmc_6B/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/esmc_6B/${dts}_${method}.csv"    
         
-        echo "AMPLIFY 350M"  
-        python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/AMPLIFY_350M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/amplify_350M/${dts}_${method}.csv"    
+        # echo "AMPLIFY 120M"  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/AMPLIFY_120M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/amplify_120M/${dts}_${method}.csv"    
+        
+        # echo "AMPLIFY 350M"  
+        # python scripts/reg_LassoCV.py -i "embeddings/DMS_compressed/AMPLIFY_350M/${dts}/embed_${dts}_mean.pt" -m "data/DMS_metadata/${dts}_metadata.csv" -o "results/lassoCV/DMS/amplify_350M/${dts}_${method}.csv"    
         
         echo " "                                  
     done
