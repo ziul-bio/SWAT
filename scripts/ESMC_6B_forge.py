@@ -16,8 +16,8 @@ print("Loading the ESM-6B model")
 forge_client = ESM3ForgeInferenceClient(model="esmc-6b-2024-12", url="https://forge.evolutionaryscale.ai", token=my_token)
 
 print('Reading the input file')
-input_file = "data/DMS_mut_sequences/PABP_YEAST_Fields2013_doubles_muts_1.2.fasta"
-output_dir = "embeddings/DMS/esmc_6B/PABP_YEAST_Fields2013_doubles_incomplete/"
+input_file = "data/PISCES/pisces_len64-1022.fasta"
+output_dir = "embeddings/PISCES/esmc_6B/"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir, exist_ok=True)
