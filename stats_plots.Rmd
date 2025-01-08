@@ -5,6 +5,11 @@ date: "2024-06-08"
 output: html_document
 ---
 
+# ask luiz tomorrow
+# what order to put supp 8 and 9 in with new models (by size?)
+
+
+
 # Loading libraries
 ```{r}
 library(here)
@@ -285,7 +290,6 @@ final_plot
 multi_mod_DMS <- read.csv(here("results/summary_DMS_all_multi_model.csv"))
 
 
-
 multi_mod_DMS <- multi_mod_DMS %>%
   mutate(Model = case_when(
     Model == "esm1v_650M" ~ "ESM1v 650M",
@@ -316,6 +320,7 @@ grouped_multi_mod_DMS <- multi_mod_DMS %>%
 
 # need to make an order for the x axis
 grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B"))
+
 
 
 
@@ -393,6 +398,101 @@ DMS_multi_boxplot
 
 
 
+
+
+# NEW Fig 3a
+
+```{r}
+
+multi_mod_DMS <- read.csv(here("results/lassoCV/DMS/DMS_all_multi_model_metadata.csv"))
+
+#results/lassoCV/DMS/DMS_all_multi_model_metadata.csv
+
+multi_mod_DMS <- multi_mod_DMS %>%
+  mutate(Model = case_when(
+    Model == "esm1v" ~ "ESM1v",
+    Model == "esm2" ~ "ESM2",
+    Model == "esmc" ~ "ESMC",
+    Model == "amplify" ~ "Amplify"
+  ))
+
+#exlude due to sequences too long for esm1v, need to make sup figure
+#exclude_data <- c("BRCA1 RING", "UBE4B singles", "BRCA1 BRCT", "POLG Sun2014")
+  
+exclude_data <-  c('BRCA1_HUMAN_RING','UBE4B_MOUSE_Klevit2013_singles', 'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014')
+
+grouped_multi_mod_DMS <- multi_mod_DMS %>%
+  filter(!Dataset %in% exclude_data) %>%
+  filter(Compression_method %in% c('mean')) %>%
+  group_by(Dataset, Model, parameters) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+   
+  ) %>%
+  mutate(Model = factor(Model, levels = c("ESM1v", "ESM2", "ESMC", "Amplify"))) %>%
+  ungroup()
+
+
+
+# need to make an order for the x axis
+#grouped_multi_mod_DMS$Model <- factor(grouped_multi_mod_DMS$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B"))
+
+
+```
+```{r}
+#color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
+
+color_dict <- c(
+  "ESM1v" = "#ff7f0e",
+  "ESM2" = "#1f77b4",
+  "ESMC" = "#2ca02c",
+  "Amplify" = "#FFFF00"
+)
+
+
+DMS_all_boxplot <- grouped_multi_mod_DMS %>%
+  ggplot(aes(
+    x = parameters, 
+    y = mean_score, 
+    group = interaction(Model, parameters), 
+    color = Model
+    )) +
+    geom_boxplot(alpha = 0.85)+
+    scale_x_log10() +
+    scale_color_manual(values = color_dict) +
+    labs(x = "", 
+         y = expression(R^2), 
+         #title = ""
+         color = ""
+         ) +
+    theme_minimal_hgrid(12, rel_small = 1)+
+    theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))
+  
+DMS_all_boxplot
+ 
+ggsave(DMS_all_boxplot, 
+      filename = "DMS_all_boxplot.png",
+       path = here('figs'),
+       width = 11,
+       height = 4,
+      dpi=600)      
+
+
+
+```
 
 
 
@@ -615,15 +715,15 @@ gradient_plots
 
 
 
-# Figure 5, sup 8,9
+# Figure 5, sup 8,9 - CURRENTLY EDITING
 
 
 ```{r}
 
-data_with_size <- read.csv(here('results/summary_DMS_all_multi_model.csv'))
+data_with_size <- read.csv(here('results/lassoCV/DMS/DMS_all_multi_model_metadata.csv'))
 
 data_with_size <- data_with_size %>%
-  group_by(Dataset, Model) %>%
+  group_by(Dataset, Model, ModelSize) %>%
   summarise(
     mean_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
@@ -631,21 +731,17 @@ data_with_size <- data_with_size %>%
     group = unique(group)[1],
     prot_length = median(get('prot_length'))
   ) %>%
+  mutate(Model = case_when(
+    Model == "esm1v" ~ "ESM1v",
+    Model == "esm2" ~ "ESM2",
+    Model == "esmc" ~ "ESMC",
+    Model == "amplify" ~ "Amplify"
+  ))%>%
+  mutate(Model = factor(Model, levels = c("ESM1v", "ESM2", "ESMC", "Amplify"))) %>%
   ungroup()
 
-data_with_size <- data_with_size %>%
-  mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "ESM1v 650M",
-    Model == "esm2_8M" ~ "ESM2 8M",
-    Model == "esm2_35M" ~ "ESM2 35M",
-    Model == "esm2_150M_all" ~ "ESM2 150M",
-    Model == "esm2_150M" ~ "ESM2 150M",
-    Model == "esm2_650M" ~ "ESM2 650M",
-    Model == "esm2_3B" ~ "ESM2 3B",
-    Model == "esm2_15B" ~ "ESM2 15B"
-  ))
 
-data_with_size$Model <- factor(data_with_size$Model, levels = c('ESM1v 650M', 'ESM2 8M', 'ESM2 35M', 'ESM2 150M', 'ESM2 650M', 'ESM2 3B', 'ESM2 15B'))
+#data_with_size$Model <- factor(data_with_size$Model, levels = c('ESM1v 650M', 'ESM2 8M', 'ESM2 35M', 'ESM2 150M', 'ESM2 650M', 'ESM2 3B', 'ESM2 15B'))
 data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral replication", "Enzyme function", "Other", "Peptide binding", "Protein stability"))
 
 ```
@@ -653,78 +749,81 @@ data_with_size$group <- factor(data_with_size$group, levels = c("Growth", "Viral
 
 # Supp 8
 ```{r}
-
-
 #ESM1v 650M
-model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM1v 650M")
-#slope_ESM1v_650M <- coef(model_ESM1v_650M)[2]
+model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM1v" & ModelSize == "650M"))
 r_squared_ESM1v_650M <- summary(model_ESM1v_650M)$r.squared
-#label_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_ESM1v_650M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_ESM1v_650M))) ~ "     "))
 label_ESM1v_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_ESM1v_650M)))
 
 
 # ESM2 8M
-model_8M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 8M")
-#slope_8M <- coef(model_8M)[2]
+model_8M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "8M"))
 r_squared_8M <- summary(model_8M)$r.squared
-#label_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_8M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_8M))) ~ "     "))
 label_8M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_8M)))
 
 
 #ESM2 35M
-model_35M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 35M")
-#slope_35M <- coef(model_35M)[2]
+model_35M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "35M"))
 r_squared_35M <- summary(model_35M)$r.squared
-#label_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_35M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_35M))) ~ "     "))
 label_35M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_35M)))
 
 #ESM2 150M
-model_150M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 150M")
-#slope_150M <- coef(model_150M)[2]
+model_150M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "150M"))
 r_squared_150M <- summary(model_150M)$r.squared
-#label_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_150M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_150M))) ~ "     "))
 label_150M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_150M)))
 
 
 #ESM2 650M
-model_650M <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 650M")
-#slope_650M <- coef(model_650M)[2]
+model_650M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "650M"))
 r_squared_650M <- summary(model_650M)$r.squared
-#label_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_650M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_650M))) ~ "     "))
 label_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_650M)))
 
 #ESM2 3B
-model_3B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 3B")
-#slope_3B <- coef(model_3B)[2]
+model_3B <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "3B"))
 r_squared_3B <- summary(model_3B)$r.squared
-#label_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_3B))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_3B))) ~ "     "))
 label_3B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_3B)))
 
 
 #ESM2 15B
-model_15B <- lm(mean_score ~ log(dataset_size), data = data_with_size, subset = Model == "ESM2 15B")
-#slope_15B <- coef(model_15B)[2]
+model_15B <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM2" & ModelSize == "15B"))
 r_squared_15B <- summary(model_15B)$r.squared
-#label_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(slope_15B))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(r_squared_15B))) ~ "     "))
 label_15B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_15B)))
+
+
+#ESMC 300M
+model_C300M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESMC" & ModelSize == "300M"))
+r_squared_C300M <- summary(model_C300M)$r.squared
+label_C300M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C300M)))
+
+#ESMC 600M
+model_C600M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESMC" & ModelSize == "600M"))
+r_squared_C600M <- summary(model_C600M)$r.squared
+label_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C600M)))
+
+
+#Amplify 120M 
+model_A120M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "Amplify" & ModelSize == "120M"))
+r_squared_A120M <- summary(model_A120M)$r.squared
+label_A120M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_A120M)))
+
+#Amplify 350M
+model_A350M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "Amplify" & ModelSize == "350M"))
+r_squared_A350M <- summary(model_A350M)$r.squared
+label_A350M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_A350M)))
+
+
 
 
 data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
-  labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B)),
-  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
-  x = c(1150, 1200, 1200, 1200, 1200, 1200, 620),
-  y = c(.78, .78, .78, .78, .78, .78, .83)
+  labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B, label_C300M, label_C600M, label_A120M, label_A350M)),
+  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"),
+  x = c(1150, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 620, 1200, 1200),
+  y = c(.78, .78, .78, .78, .78, .78, .78, .78, .83, .78, .78)
 )
 
-data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
+
+# not sure what order to do this part in 
+data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"))
 
 
 print(data_text)
@@ -825,73 +924,75 @@ plot_param
 ```{r}
 
 #ESM1v 650M
-pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM1v 650M")
-#pslope_ESM1v_650M <- coef(pmodel_ESM1v_650M)[2]
+pmodel_ESM1v_650M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM1v" & ModelSize == "650M"))
 pr_squared_ESM1v_650M <- summary(pmodel_ESM1v_650M)$r.squared
-#plabel_ESM1v_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_ESM1v_650M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_ESM1v_650M))) ~ "     "))
 plabel_ESM1v_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_ESM1v_650M)))
 
 # ESM2 8M
-pmodel_8M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 8M")
-#pslope_8M <- coef(pmodel_8M)[2]
+pmodel_8M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "8M"))
 pr_squared_8M <- summary(pmodel_8M)$r.squared
-#plabel_8M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_8M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_8M))) ~ "     "))
 plabel_8M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_8M)))
 
 #ESM2 35M
-pmodel_35M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 35M")
-#pslope_35M <- coef(pmodel_35M)[2]
+pmodel_35M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "35M"))
 pr_squared_35M <- summary(pmodel_35M)$r.squared
-#plabel_35M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_35M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_35M))) ~ "     "))
 plabel_35M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_35M)))
 
 
 #ESM2 150M
-pmodel_150M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 150M")
-#pslope_150M <- coef(pmodel_150M)[2]
+pmodel_150M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "150M"))
 pr_squared_150M <- summary(pmodel_150M)$r.squared
-#plabel_150M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_150M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_150M))) ~ "     "))
 plabel_150M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_150M)))
 
 
 #ESM2 650M
-pmodel_650M <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 650M")
-#pslope_650M <- coef(pmodel_650M)[2]
+pmodel_650M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "650M"))
 pr_squared_650M <- summary(pmodel_650M)$r.squared
-#plabel_650M <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_650M))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_650M))) ~ "     "))
 plabel_650M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_650M)))
 
 #ESM2 3B
-pmodel_3B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 3B")
-#pslope_3B <- coef(pmodel_3B)[2]
+pmodel_3B <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "3B"))
 pr_squared_3B <- summary(pmodel_3B)$r.squared
-#plabel_3B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_3B))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_3B))) ~ "     "))
 plabel_3B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_3B)))
 
 
 #ESM2 15B
-pmodel_15B <- lm(mean_score ~ log(prot_length), data = data_with_size, subset = Model == "ESM2 15B")
-#pslope_15B <- coef(pmodel_15B)[2]
+pmodel_15B <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESM2" & ModelSize == "15B"))
 pr_squared_15B <- summary(pmodel_15B)$r.squared
-#plabel_15B <- bquote(atop("Slope:" ~ .(sprintf("%.2f", as.numeric(pslope_15B))), 
-#                         " " ~ R^2 ~ ":" ~ .(sprintf("%.2f", as.numeric(pr_squared_15B))) ~ "     "))
 plabel_15B <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_15B)))
+
+#ESMC 300M
+pmodel_C300M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESMC" & ModelSize == "300M"))
+pr_squared_C300M <- summary(pmodel_C300M)$r.squared
+plabel_C300M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C300M)))
+
+#ESMC 600M
+pmodel_C600M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESMC" & ModelSize == "600M"))
+pr_squared_C600M <- summary(pmodel_C600M)$r.squared
+plabel_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C600M)))
+
+#Amplify 120M 
+pmodel_A120M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "Amplify" & ModelSize == "120M"))
+pr_squared_A120M <- summary(pmodel_A120M)$r.squared
+plabel_A120M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_A120M)))
+
+#Amplify 350M
+pmodel_A350M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "Amplify" & ModelSize == "350M"))
+pr_squared_A350M <- summary(pmodel_A350M)$r.squared
+plabel_A350M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_A350M)))
+
+
+
 
 prot_data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
-  labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B)),
-  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"),
-  x = c(130, 180, 180, 180, 180, 180, 110),
-  y = c(.78, .78, .78, .78, .78, .78, .78)
+  labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B, plabel_C300M, plabel_C600M, plabel_A120M, plabel_A350M)),
+  Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"),
+  x = c(130, 180, 180, 180, 180, 180, 180, 180, 110, 180, 180),
+  y = c(.78, .78, .78, .78, .78, .78, .78, .78, .83, .78, .78)
 )
 
-prot_data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B"))
+prot_data_text$Model <- factor(data_text$Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B","ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"))
 
 
 print(prot_data_text)
@@ -997,7 +1098,7 @@ label_function <- function(x) {
 }
 
 fig_5_datasize <- data_with_size %>%
-  filter(Model == 'ESM2 15B') %>%
+  filter(Model == 'ESMC' & ModelSize == '600M') %>%
     ggplot(aes(
       x = dataset_size, 
       y = mean_score,
@@ -1059,7 +1160,7 @@ fig_5_datasize <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(data_text, Model == "ESM2 15B"),
+        data = filter(data_text, Model == "ESMC 600M"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
@@ -1088,7 +1189,7 @@ label_function <- function(x) {
 
 
 fig5_protlen <- data_with_size %>%
-  filter(Model == 'ESM2 15B') %>%
+  filter(Model == 'ESMC' & ModelSize == '600M') %>%
     ggplot(aes(
       x = prot_length, 
       y = mean_score,
@@ -1144,7 +1245,7 @@ fig5_protlen <- data_with_size %>%
         )+
   
     geom_text(
-        data = filter(prot_data_text, Model == "ESM2 15B"),
+        data = filter(prot_data_text, Model == "ESMC 600M"),
         mapping = aes(x = x, y = y, label = labels),
         color = "black",
         parse=TRUE,
