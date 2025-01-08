@@ -5,11 +5,6 @@ date: "2024-06-08"
 output: html_document
 ---
 
-# ask luiz tomorrow
-# what order to put supp 8 and 9 in with new models (by size?)
-
-
-
 # Loading libraries
 ```{r}
 library(here)
@@ -1668,17 +1663,20 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
-        plot.margin = margin(0, 10, 0, 10))+
-  #facet_wrap(~ Dataset, scales = "free")
+        plot.margin = margin(0, 10, 0, 10),
+        
+        strip.background = element_rect(fill = "gray90", color = "black", size = .5),
+  strip.text = element_text(face = "bold", color = "black")
+        )+
   facet_grid(Dataset ~ Model, scales = "free")
 
 
-  ggsave(DMS_sample_R2_plot,
-         filename = "DMS_sample_R2_plot.png",
-         path = here("figs"),
-         width = 8,
-        height = 7,
-         dpi=600)
+  # ggsave(DMS_sample_R2_plot,
+  #        filename = "DMS_sample_R2_plot.png",
+  #        path = here("figs"),
+  #        width = 8,
+  #       height = 7.5,
+  #        dpi=600)
 
 
 #DMS_sample_R2_plot + facet_grid(cols = vars(Dataset))
