@@ -794,10 +794,13 @@ model_C300M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, 
 r_squared_C300M <- summary(model_C300M)$r.squared
 label_C300M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C300M)))
 
+
 #ESMC 600M
 model_C600M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESMC" & ModelSize == "600M"))
 r_squared_C600M <- summary(model_C600M)$r.squared
-label_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C600M)))
+#label_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C600M)))
+label_C600M <- bquote("Regression " ~ R^2 ~ ": " ~ .(sprintf("%.2f", r_squared_C600M)))
+
 
 
 #Amplify 120M 
@@ -817,7 +820,7 @@ data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B, label_C300M, label_C600M, label_A120M, label_A350M)),
   Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"),
-  x = c(1150, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 620, 1200, 1200),
+  x = c(1150, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1120, 1200, 1200),
   y = c(.78, .78, .78, .78, .78, .78, .78, .78, .83, .78, .78)
 )
 
@@ -969,7 +972,8 @@ plabel_C300M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C300M)))
 #ESMC 600M
 pmodel_C600M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "ESMC" & ModelSize == "600M"))
 pr_squared_C600M <- summary(pmodel_C600M)$r.squared
-plabel_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C600M)))
+#plabel_C600M <- bquote(R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C600M)))
+plabel_C600M <- bquote("Regression " ~ R^2 ~ ": " ~ .(sprintf("%.2f", pr_squared_C600M)))
 
 #Amplify 120M 
 pmodel_A120M <- lm(mean_score ~ log(prot_length), data = subset(data_with_size, Model == "Amplify" & ModelSize == "120M"))
@@ -988,7 +992,7 @@ prot_data_text <- data.frame(
   #labels = c(label_150M, label_650M, label_15B),
   labels = I(list(plabel_ESM1v_650M, plabel_8M, plabel_35M, plabel_150M, plabel_650M, plabel_3B, plabel_15B, plabel_C300M, plabel_C600M, plabel_A120M, plabel_A350M)),
   Model = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M","ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M"),
-  x = c(130, 180, 180, 180, 180, 180, 180, 180, 110, 180, 180),
+  x = c(130, 180, 180, 180, 180, 180, 180, 180, 180, 180, 180),
   y = c(.78, .78, .78, .78, .78, .78, .78, .78, .83, .78, .78)
 )
 
@@ -1138,7 +1142,7 @@ fig_5_datasize <- data_with_size %>%
       size = .6
       )+
     labs(x = "Sample Size", 
-         y = "Performance Score"
+         y = expression(paste("Cross Validation ", R^2))
            #expression(paste(R^2)),
 
          ) +
@@ -1546,55 +1550,62 @@ pisces_multi_boxplot
 
 # Figure 4: DMS 4 set (with His7) sampling (DMS) 
 ```{r}
-DMS_sampling <- read.csv(here('results/summary_DMS4_sampling.csv'))
+DMS_sampling <- read.csv(here('results/lassoCV_sampling/lassoCV_sampling_all_models_and_datasets.csv'))
+  #read.csv(here('results/summary_DMS4_sampling.csv'))
+
 
 ```
 
 ```{r}
-
-
 grouped_DMS_sampling <- DMS_sampling %>%
-  group_by(Dataset, Sample_size, Model) %>%
+  mutate(Dataset = case_when(
+  Dataset == "BLAT_ECOLX_2015" ~ "BLAT ECOLX Singles",
+  Dataset == "PABP_doubles" ~ "PABP Doubles",
+  Dataset == "HIS7" ~ "HIS7 Multiple",
+  #TRUE ~ Dataset
+  )) %>%
+  group_by(Dataset, Sample_size, Model, ModelSize) %>%
   filter(!Sample_size %in% c(32)) %>%
+  filter(!Model %in% c("esm1v")) %>%
   summarise(
     mean_R2_score = mean(get('R2_score_test'), na.rm = TRUE),
     std_R2_score = sd(get('R2_score_test'), na.rm = TRUE),
     mean_coeff_score = mean(get('nun_zero_coefs'), na.rm = FALSE),
     std_coeff_score = sd(get('nun_zero_coefs'), na.rm = FALSE)
-    
   ) %>%
+  mutate(Model = case_when(
+    Model == "esm2" ~ "ESM2",
+    Model == "esmc" ~ "ESMC",
+    Model == "amplify" ~ "Amplify",
+    TRUE ~ Model
+  )) %>%
   ungroup()
 
-grouped_DMS_sampling <- grouped_DMS_sampling %>%
-  mutate(Model = case_when(
-    Model == "esm1v_650M" ~ "ESM1v 650M",
-    Model == "esm2_8M" ~ "ESM2 8M",
-    Model == "esm2_35M" ~ "ESM2 35M",
-    Model == "esm2_150M_all" ~ "ESM2 150M",
-    Model == "esm2_150M" ~ "ESM2 150M",
-    Model == "esm2_650M" ~ "ESM2 650M",
-    Model == "esm2_3B" ~ "ESM2 3B",
-    Model == "esm2_15B" ~ "ESM2 15B"
-  ))
+
+grouped_DMS_sampling$modelname <- paste(grouped_DMS_sampling$Model, grouped_DMS_sampling$ModelSize)
 
 grouped_DMS_sampling <- grouped_DMS_sampling %>%
-  mutate(Model = factor(Model, levels = c("ESM1v 650M", "ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B")))
+  mutate(ModelSize = factor(ModelSize, levels = c("8M", "35M", "150M", "650M", "3B", "15B", "300M", "600M", "120M", "350M"))) %>%
+  mutate(Dataset = factor(Dataset, levels = c("BLAT ECOLX Singles", "PABP Doubles", "HIS7 Multiple"))) %>%
+mutate(Model = factor(Model, levels = c("ESM2", "ESMC", "Amplify"))) #%>%
+# mutate(modelname = factor(modelname, levels = c("ESM2 8M", "ESM2 35M", "ESM2 150M", "ESM2 650M", "ESM2 3B", "ESM2 15B", "ESMC 300M", "ESMC 600M", "Amplify 120M", "Amplify 350M")))
+
+# mutate(Dataset = case_when(
+#   Dataset == "BLAT_ECOLX_2015" ~ "BLAT",
+#   Dataset == "PABP_doubles" ~ "PABPDoubles",
+#   Dataset == "HIS7" ~ "HIS7Multiple",
+#   #TRUE ~ Dataset
+#   )) %>%
+#mutate(Dataset = factor(Dataset, levels = c("BLAT ECOLX 2015 Singles", "PABP Doubles", "HIS7 Multiple")))
 
 
-grouped_DMS_sampling <- grouped_DMS_sampling %>%
-  mutate(Dataset = case_when(
-    Dataset == "BLAT_ECOLX_2015" ~ "BLAT ECOLX 2015 (singles)",
-    Dataset == "PABP_doubles" ~ "PABP (doubles)",
-    Dataset == "parEparD_all" ~ "parEparD (1-4)",
-    Dataset == "HIS7_YEAST" ~ "HIS7 (1-28)"
-    )) %>%
-    mutate(Dataset = factor(Dataset, levels = c("BLAT ECOLX 2015 (singles)", "PABP (doubles)", "parEparD (1-4)", "HIS7 (1-28)"))) 
+
     
-parepard_sample <- grouped_DMS_sampling %>%
-  filter(Dataset %in% c("parEparD (1-4)"))
+# parepard_sample <- grouped_DMS_sampling %>%
+#   filter(Dataset %in% c("parEparD (1-4)"))
 
-grouped_DMS_sampling <- grouped_DMS_sampling %>%
-  filter(!Dataset %in% c("parEparD (1-4)"))
+# grouped_DMS_sampling <- grouped_DMS_sampling %>%
+#   filter(!Dataset %in% c("parEparD (1-4)"))
 
 # grouped_DMS_sampling <- grouped_DMS_sampling %>%
 #   mutate(label = dataset_labels[Dataset])
@@ -1605,26 +1616,23 @@ grouped_DMS_sampling <- grouped_DMS_sampling %>%
 ```{r}
 
 #color_dict <- c("150M" = '#9ECAE1','650M' = '#4292C6', "15B" = '#254369')
-color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594")
+# color_dict = c("ESM1v 650M" = "#D68F6B", "ESM2 8M" = "#C6DBEF", "ESM2 35M" = "#9ECAE1", "ESM2 150M" = "#6BAED6", "ESM2 650M" = "#4292C6", "ESM2 3B" = "#2171B5", "ESM2 15B" = "#084594", "ESMC 300M" = "#5ad75a", "ESMC 600M" = "#228C22", "Amplify 120M" = "#ffb16c", "Amplify 350M" = "#ff7f0e")
+
+color_dict = c("8M" = "#C6DBEF", "35M" = "#9ECAE1", "150M" = "#6BAED6", "650M" = "#4292C6", "3B" = "#2171B5", "15B" = "#084594", "300M" = "#5ad75a", "600M" = "#228C22", "120M" = "#ffb16c", "350M" = "#ff7f0e")
 
 
-#color_dict <- c("150M" = '#7C9ACB','650M' = '#375D8F', "15B" = '#254369')
-#08519C
-#4292C6
-#9ECAE1
-
-
+#5ad75a
 DMS_sample_R2_plot <- grouped_DMS_sampling %>%
   ggplot(aes(
       x = Sample_size, 
       y = mean_R2_score,
-      color = Model
+      color = ModelSize
       )) +
   scale_x_continuous(limits = c(95, 1000000),trans = scales::log_trans(),
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))
                        ) +
-  scale_y_continuous(limits = c(-.3, .8)) +
+  scale_y_continuous(limits = c(-.3, 1)) +
   geom_errorbar(aes(
       ymin = mean_R2_score - std_R2_score, 
       ymax = mean_R2_score + std_R2_score), 
@@ -1637,11 +1645,13 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
   geom_point(#position = position_dodge(width = 0.2)
              )+
   scale_color_manual(
-    values = color_dict
+    values = color_dict,
+    name = "Model Size"
+    
     ) +
   
   labs(x= "Sample Size", 
-    y = expression(R^2), fill = ""
+    y = expression(paste("Cross Validation ", R^2)), fill = ""
        ) +
   theme_minimal_grid(12, rel_small = 1)+
   theme(
@@ -1653,21 +1663,22 @@ DMS_sample_R2_plot <- grouped_DMS_sampling %>%
         panel.border = element_rect(color = "black", 
                                     fill = NA, 
                                    size = .5),
+        panel.spacing = unit(.30, "cm"),
       
         axis.line = element_blank(),
         axis.ticks.x = element_line(color = "black"),
         axis.ticks.y = element_line(color = "black"),
         plot.margin = margin(0, 10, 0, 10))+
-  facet_wrap(~ Dataset, ncol = 1, scales = "free"
-              ) 
+  #facet_wrap(~ Dataset, scales = "free")
+  facet_grid(Dataset ~ Model, scales = "free")
 
 
-  # ggsave(DMS_sample_R2_plot,
-  #        filename = "DMS_sample_R2_plot.png",
-  #        path = here("figs"),
-  #        width = 6.75,
-  #       height = 8,
-  #        dpi=600)
+  ggsave(DMS_sample_R2_plot,
+         filename = "DMS_sample_R2_plot.png",
+         path = here("figs"),
+         width = 8,
+        height = 7,
+         dpi=600)
 
 
 #DMS_sample_R2_plot + facet_grid(cols = vars(Dataset))
