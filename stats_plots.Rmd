@@ -282,7 +282,6 @@ final_plot
 
 # Fig 3A DMS multi boxplot 
 ```{r}
-
 multi_mod_DMS <- read.csv(here("results/lassoCV/DMS/DMS_all_multi_model_metadata.csv"))
 
 multi_mod_DMS <- multi_mod_DMS %>%
@@ -335,25 +334,6 @@ data_medians <- grouped_multi_mod_DMS %>%
 
 ```{r}
 
-# color_dict <- c(
-#   "ESM1v" = "#ff7f0e",
-#   "ESM2" = "#1f77b4",
-#   "ESMC" = "#2ca02c",
-#   "Amplify" = "#FFFF00"
-# )
-
-
-
-#     scale_color_manual(
-#       values = colorspace::darken(c(ESM1v = "#000000", ESM2 = "#56B4E9",
-#                  ESMC = "#009E73", Amplify = "#E69F00"), .2)
-#     ) +
-#     scale_fill_manual(
-#       values = c(ESM1v = "#00000080", ESM2 = "#56B4E980",
-#                  ESMC = "#009E7380", Amplify = "#E69F0080")
-#     ) +
-
-
 
 DMS_all_boxplot <- grouped_multi_mod_DMS %>%
   ggplot(aes(
@@ -391,7 +371,7 @@ DMS_all_boxplot <- grouped_multi_mod_DMS %>%
     color = guide_legend(title = "Model"),
     fill = guide_legend(title = "Model")
   ) +
-    theme_minimal_hgrid(12, rel_small = 1)+
+    theme_minimal_grid(12, rel_small = 1)+
     theme(
         legend.position = "top",
         panel.background = element_rect(fill = "white", colour = "white"),
@@ -408,16 +388,114 @@ DMS_all_boxplot <- grouped_multi_mod_DMS %>%
   
 DMS_all_boxplot
  
-# ggsave(DMS_all_boxplot, 
+# ggsave(DMS_all_boxplot,
 #       filename = "DMS_all_boxplot.png",
 #        path = here('figs'),
 #        width = 8,
 #        height = 4,
-#       dpi=600)      
+#       dpi=600)
 
 
 
 ```
+# NEW sup 3 excluded
+```{r}
+exclude_data <-  c('BRCA1_HUMAN_RING','UBE4B_MOUSE_Klevit2013_singles', 'BRCA1_HUMAN_BRCT', 'POLG_HCVJF_Sun2014')
+
+exclude_multi_mod_DMS <- multi_mod_DMS %>%
+  filter(Dataset %in% exclude_data) %>%
+  filter(Compression_method %in% c('mean')) %>%
+  group_by(Dataset, Model, parameters) %>%
+  summarise(
+    mean_score = mean(get('R2_score_test'), na.rm = TRUE),
+    std_score = sd(get('R2_score_test'), na.rm = TRUE),
+    prot_length = median(get('prot_length'))
+   
+  ) %>%
+  mutate(Model = factor(Model, levels = c("ESM1v", "ESM2", "ESMC", "Amplify"))) %>%
+  ungroup()
+
+max_len = max(exclude_multi_mod_DMS$prot_length)
+max_len = min(exclude_multi_mod_DMS$prot_length)
+
+```
+
+
+```{r}
+
+excluded_sup3 <- exclude_multi_mod_DMS %>%
+  ggplot(aes(
+    x = parameters, 
+    y = mean_score, 
+    #group = interaction(Model, parameters), 
+    #color = Model,
+    group = Dataset,
+    color = prot_length
+    #fill = Model
+    )) +
+    geom_line() +
+    # geom_errorbar(aes(
+    #   ymin = mean_score - std_score, 
+    #   ymax = mean_score + std_score), 
+    #   width = 0.1,
+    #   alpha = 1) +
+  geom_point(shape = 21, 
+             size = 2,  
+               color = "black", 
+               aes(fill = prot_length),
+               stroke = .2
+               ) + 
+    scale_color_viridis_c(name = "Protein Length",
+                          #begin = .1, 
+                          #end =1, 
+                          direction=-1,
+                          limit = c(min_len, max_len)) +
+    scale_fill_viridis_c(#begin = .1, 
+                         #end = 1, 
+                         direction = -1, guide = "none",
+                          limit = c(min_len, max_len)) +
+  
+  
+    scale_x_log10(trans = scales::log_trans(),
+                     breaks = scales::log_breaks(),
+                     labels = trans_format("log10", math_format(10^.x))) +
+    
+    labs(x = "", 
+         y = expression(paste("Cross Validation ", R^2)), 
+         #title = "",
+         color = ""
+         ) +
+
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        legend.position = "right",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10))+
+    facet_wrap(~ Model) 
+  
+excluded_sup3
+ 
+# ggsave(excluded_sup3,
+#       filename = "excluded_sup3.png",
+#        path = here('figs'),
+#        width = 8,
+#        height = 4,
+#       dpi=600)
+
+
+```
+
+
+
 
 
 
@@ -640,7 +718,7 @@ gradient_plots
 
 
 
-# Figure 5, sup 8,9 - CURRENTLY EDITING
+# Figure 5, sup 8,9 
 
 
 ```{r}
@@ -676,7 +754,7 @@ data_with_size$ModelSize <- factor(data_with_size$ModelSize, levels = c("8M", "3
 ```
 
 
-# Supp 8
+# Sample Size
 ```{r}
 #ESM1v 650M
 model_ESM1v_650M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESM1v" & ModelSize == "650M"))
@@ -729,6 +807,10 @@ model_C600M <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, 
 r_squared_C600M <- summary(model_C600M)$r.squared
 label_C600M <- bquote("Regression " ~ R^2 ~ ": " ~ .(sprintf("%.3f", r_squared_C600M)))
 
+# #ESMC 6B
+# model_C6B <- lm(mean_score ~ log(dataset_size), data = subset(data_with_size, Model == "ESMC" & ModelSize == "6B"))
+# r_squared_C6B <- summary(model_C6B)$r.squared
+# label_C6B <- bquote("Regression " ~ R^2 ~ ": " ~ .(sprintf("%.3f", r_squared_C6B)))
 
 
 #Amplify 120M 
@@ -748,8 +830,8 @@ data_text <- data.frame(
   labels = I(list(label_ESM1v_650M, label_8M, label_35M, label_150M, label_650M, label_3B, label_15B, label_C300M, label_C600M, label_A120M, label_A350M)),
   Model = c("ESM1v", "ESM2", "ESM2", "ESM2", "ESM2","ESM2", "ESM2", "ESMC", "ESMC", "Amplify", "Amplify"),
   ModelSize = c("650M", "8M", "35M", "150M", "650M","3B", "15B", "300M", "600M", "120M", "350M"),
-  x = c(1150, 3700, 3700, 3700, 3700, 3700, 3700, 1200, 1200, 1200, 1200),
-  y = c(.75, .75, .75, .75, .75, .75, .75, .75, .83, .75, .75)
+  x = c(1150, 3700, 3700, 3700, 3700, 3700, 3700, 1200, 1200, 1150, 1150),
+  y = c(.75, .75, .75, .75, .75, .75, .75, .83, .83, .76, .76)
 )
 
 
@@ -765,7 +847,7 @@ print(data_text)
 
 ```{r}
 
-# FOR SUP 8
+# FOR SUP 8 - ESM2
 
 label_function <- function(x) {
     ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
@@ -844,10 +926,177 @@ plot_param <- data_with_size %>%
 
 plot_param 
 
+```
+
+
+```{r}
+
+#Sup 9 ESMC
+
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
+
+plot_param_ESMC <- data_with_size %>%
+  filter(Model == 'ESMC' ) %>%
+    ggplot(aes(
+      x = dataset_size, 
+      y = mean_score,
+      color = group
+      )) +
+  geom_smooth(
+
+      method = 'lm', 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+  
+  scale_x_log10(labels = label_function)+
+
+    scale_y_continuous(limits = c(0, 0.85))+
+  
+    geom_point(alpha = 1, size = 2
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .8,
+      size = .6
+      )+
+    labs(x = "Sample Size", 
+         y = expression(paste("Cross Validation ", R^2))
+           #expression(paste(R^2)),
+
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+    geom_text(
+        data = filter(data_text, Model == "ESMC" & ModelSize == '300M'),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+        
+        )
+
+plot_param_ESMC
+
+# 
+# ggsave(plot_param_ESMC,
+#        filename = "plot_param_ESMC.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 5,
+#        dpi=600)
 
 ```
 
-# Supp 9
+```{r}
+# plot_param_Amplify
+
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
+
+
+plot_param_Amplify <- data_with_size %>%
+  filter(Model == 'Amplify') %>%
+    ggplot(aes(
+      x = dataset_size, 
+      y = mean_score,
+      color = group
+      )) +
+
+  scale_x_log10(labels = label_function)+
+
+
+
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = .9
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .7
+  
+      )+
+  
+ 
+    labs(x = "Sample Size", 
+         y = expression(paste("Cross Validation ", R^2))
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+    geom_text(
+        data = filter(data_text, Model == "Amplify"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+
+        )+
+  facet_wrap(~ ModelSize,scales = "free_x")
+    
+
+
+ # ggsave(plot_param_Amplify,
+ #        filename = "plot_param_Amplify.png",
+ #        path = here("figs"),
+ #        width = 8.5,
+ #        height = 5,
+ #        dpi=600)
+
+plot_param_Amplify 
+
+
+
+```
+
+
+
+
+# Protein Length
 
 ```{r}
 
@@ -919,7 +1168,7 @@ prot_data_text <- data.frame(
   Model = c("ESM1v", "ESM2", "ESM2", "ESM2", "ESM2","ESM2", "ESM2", "ESMC", "ESMC", "Amplify", "Amplify"),
   ModelSize = c("650M", "8M", "35M", "150M", "650M","3B", "15B", "300M", "600M", "120M", "350M"),
   x = c(130, 460, 460, 460, 460, 460, 460, 180, 180, 180, 180),
-  y = c(.72, .75, .75, .75, .75, .75, .75, .76, .83, .76, .76)
+  y = c(.72, .75, .75, .75, .75, .75, .75, .83, .83, .76, .76)
 )
 
 
@@ -947,7 +1196,7 @@ sup9_prot_length <- data_with_size %>%
       y = mean_score,
       color = group
       )) +
-  scale_x_log10()+
+  scale_x_log10(labels = label_function)+
 
 
   geom_smooth(
@@ -1016,6 +1265,243 @@ sup9_prot_length
 
 
 ```
+
+
+
+```{r}
+#ESMC 300M
+
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, trans_format("log10", math_format(10^.x))(x), "")
+  }
+
+
+protlen_ESMC <- data_with_size %>%
+  filter(Model == 'ESMC' & ModelSize == '300M') %>%
+    ggplot(aes(
+      x = prot_length, 
+      y = mean_score,
+      color = group
+      )) +
+  
+  scale_x_log10(labels = label_function)+
+
+
+    scale_y_continuous(limits = c(0, 0.85))+
+
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      #formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = 2
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .8,
+      size = .6
+  
+      )+
+
+    labs(x = "Protein Length", 
+         y = NULL,
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        legend.position = "right",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 20, 0, 0)
+        )+
+  
+    geom_text(
+        data = filter(prot_data_text, Model == "ESMC" & ModelSize == "300M"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+
+        )
+
+
+# ggsave(protlen_ESMC,
+#        filename = "protlen_ESMC.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 5,
+#        dpi=600)
+
+protlen_ESMC 
+
+```
+
+```{r}
+
+# Amplify prot len
+
+label_function <- function(x) {
+    ifelse(log10(x) %% 1 == 0, parse(text = paste0("10^", log10(x))), "")
+}
+
+data_with_size$ModelSize <- factor(data_with_size$ModelSize, levels = c("8M", "35M", "120M", "150M", "350M", "650M","3B", "15B", "300M", "600M"))
+
+protlen_Amplify <- data_with_size %>%
+  filter(Model == 'Amplify') %>%
+    ggplot(aes(
+      x = prot_length, 
+      y = mean_score,
+      color = group
+      )) +
+  scale_x_log10(labels = label_function)+
+
+
+  geom_smooth(
+      aes(group = Model),
+      method = 'lm', 
+      #formula = y ~ log(x), 
+      color = "black",      
+      se = TRUE, 
+      fill = "gray",
+      size = 0.3
+    ) +
+    geom_point(alpha = 1, size = .9
+              ) +
+    
+    geom_errorbar(
+      aes(
+        ymin = mean_score - std_score, 
+        ymax = mean_score + std_score), 
+      alpha = .7
+  
+      )+
+
+    
+    labs(x = "Protein Length", 
+         y = expression(paste("Cross Validation ", R^2))
+         #title = param_vec[1]
+         #title = cat("ESM2", param),
+         #color = ""
+         ) +
+  guides(color = guide_legend(title = NULL))  +
+    theme_minimal_grid(12, rel_small = 1)+
+    theme(
+        #legend.position = "top",
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+      
+
+        panel.border = element_rect(color = "black", 
+                                    fill = NA, 
+                                    size = .5),
+        axis.line = element_blank(),
+        axis.ticks.x = element_line(color = "black"),
+        axis.ticks.y = element_line(color = "black"),
+        plot.margin = margin(10, 10, 0, 10)
+        )+
+  
+    geom_text(
+        data = filter(prot_data_text, Model == "Amplify"),
+        mapping = aes(x = x, y = y, label = labels),
+        color = "black",
+        parse=TRUE,
+
+        )+
+  facet_wrap(~ ModelSize, scales = "free_x")
+    
+
+
+ # ggsave(protlen_Amplify,
+ #        filename = "protlen_Amplify.png",
+ #        path = here("figs"),
+ #        width = 8.5,
+ #        height = 5,
+ #        dpi=600)
+
+protlen_Amplify 
+
+
+```
+
+
+
+# Assemble ESM2, ESMC, Amplify
+```{r}
+ESM2_assembled <- plot_grid(plot_param,
+                  sup9_prot_length,
+                  labels = c('A', 'B'), 
+                  label_size = 12, 
+                  nrow = 2
+                  )
+
+# ggsave(ESM2_assembled,
+#        filename = "ESM2_assembled.png",
+#        path = here("figs"),
+#        width = 8,
+#        height = 9,
+#        dpi=600)
+
+ESM2_assembled
+
+```
+
+
+
+```{r}
+ESMC_assembled <- plot_grid(plot_param_ESMC,
+                  protlen_ESMC,
+                  labels = c('A', 'B'), 
+                  label_size = 12, 
+                  rel_widths = c(1, 1.35)
+                  )
+
+# ggsave(ESMC_assembled,
+#        filename = "ESMC_assembled.png",
+#        path = here("figs"),
+#        width = 10,
+#        height = 4,
+#        dpi=600)
+
+ESMC_assembled
+
+```
+
+```{r}
+Amplify_assembled <- plot_grid(plot_param_Amplify,
+                  protlen_Amplify,
+                  labels = c('A', 'B'), 
+                  label_size = 12,
+                  nrow = 2
+                  #rel_heights = c(1, 1)
+                  )
+
+# ggsave(Amplify_assembled,
+#        filename = "Amplify_assembled.png",
+#        path = here("figs"),
+#        width = 9.5,
+#        height = 7,
+#        dpi=600)
+
+Amplify_assembled
+
+```
+
+
+
 
 # Fig 5
 ```{r}
@@ -1434,7 +1920,7 @@ pisces_all_boxplot <- grouped_multi_mod_pisces %>%
          #title = ""
          color = ""
          ) +
-    theme_minimal_hgrid(12, rel_small = 1)+
+    theme_minimal_grid(12, rel_small = 1)+
     theme(
         legend.position = "none",
         panel.background = element_rect(fill = "white", colour = "white"),
