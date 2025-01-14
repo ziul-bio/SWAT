@@ -30,6 +30,22 @@ This work challenges the common belief that larger language models always yield 
 
 ## Example of how to reproduce our results
 
+0. **Setting up the enviroment**:
+
+```bash
+# clone this repository
+git clone git@github.com:ziul-bio/SWAT.git
+
+# move in
+cd SWAT
+
+# create a python3.10 or higher virtual environment
+python3.10 -m venv venv
+
+# install our version of the ESMC, modified to garantee reproducibility. See methods.
+pip install esm/
+```
+
 1. **Extract embeddings**:  
 ```bash
 # Once we have all the fasta files and metadata we can extract the embeddings for each fasta.

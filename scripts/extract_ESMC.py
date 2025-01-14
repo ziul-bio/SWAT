@@ -10,34 +10,6 @@ from esm.tokenization import get_esmc_model_tokenizers
 #python extract_ESMC.py -i data/DMS_mut_sequences/BLAT_ECOLX_Tenaillon2013_muts.fasta -m esmc-300m -o Blat_embeddings_test.pt
 
 
-# load the models locally
-def ESMC_300M_202412(model_path: str, device: torch.device | str = "cpu"):
-    with torch.device(device):
-        model = ESMC(
-            d_model=960, n_heads=15, n_layers=30, tokenizer=get_esmc_model_tokenizers()
-        ).eval()
-    state_dict = torch.load(model_path, map_location=device, weights_only=True)
-    model.load_state_dict(state_dict)
-    # Convert model parameters to bfloat16
-    #model = model.to(torch.bfloat16)
-    model = model.to(torch.float32)
-    return model
-
-
-def ESMC_600M_202412(model_path: str, device: torch.device | str = "cpu"):
-    with torch.device(device):
-        model = ESMC(
-            d_model=1152, n_heads=18, n_layers=36, tokenizer=get_esmc_model_tokenizers()
-        ).eval()
-    state_dict = torch.load(model_path, map_location=device, weights_only=True)
-    model.load_state_dict(state_dict)
-    # Convert model parameters to float32
-    model = model.to(torch.float32)
-    return model
-
-
-
-
 class FastaDataLoader:
     """
     Data loader for reading a FASTA file and creating batches based on a token limit.
@@ -134,15 +106,17 @@ def main():
 
     # Load the model based on the checkpoint identifier
     if model_checkpoint == 'esmc-300m':
-        model = ESMC_300M_202412('/stor/work/Wilke/luiz/ESM3_checkpoints/esmc_300m_2024_12_v0.pth', device)
+        model = ESMC.from_pretrained("esmc_300m").to(device) # "cuda" or "cpu"
         print("Model transferred to device:", model.device)
+    
     elif model_checkpoint == 'esmc-600m':
-        model = ESMC_600M_202412('/stor/work/Wilke/luiz/ESM3_checkpoints/esmc_600m_2024_12_v0.pth', device)
+        model = ESMC.from_pretrained("esmc_600m").to(device)
         print("Model transferred to device:", model.device)
     else:
         print("Model not found!")
         print("Choose a valid model checkpoint: 'esmc-300m' or 'esmc-600m'")
         exit(1)
+
 
     # Extract representations
     result = extract_mean_representations(model, path_input_fasta_file)
