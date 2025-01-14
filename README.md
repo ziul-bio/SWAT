@@ -44,6 +44,10 @@ python3.10 -m venv venv
 
 # install our version of the ESMC, modified to garantee reproducibility. See methods.
 pip install esm/
+
+# install remaning dependencies
+pip install --no-deps --upgrade-strategy only-if-needed -r requirements.txt
+
 ```
 
 1. **Extract embeddings**:  
