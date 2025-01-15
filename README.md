@@ -46,7 +46,7 @@ python3.10 -m venv venv
 pip install esm/
 
 # install remaning dependencies
-pip install --no-deps --upgrade-strategy only-if-needed -r requirements.txt
+pip install fair-esm
 
 ```
 
@@ -59,25 +59,12 @@ python scripts/extract.py esm2_t30_150M_UR50D data/DMS_mut_sequences/BLAT_ECOLX_
 2. **Compress embeddings**:  
 ```bash
 # Then we can compress the embeddings with the following command
-python scripts/compressing_embeddings.py  -e embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M -c mean -l 30
+python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -o "embeddings/DMS_compressed/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -c mean -l 30
 ```
 
 4. **Regression Model**:  
 ```bash
 # with the compressed embedding we can run the regression model, see script for more details
-python scripts/run_reg_LassoCV.py -i embeddings/BLAT_ECOLX_Ostermeier2014_esm2_150M_compressed/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.pkl -m data/metadata_DMS/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
-```
-
-
-## Using a bash script to loop through all files
-Extracting all embeddings on a loop.
-```bash
-bash run_extraction_DMS.sh
-
-# Compression of the embeddings using a bash script to compress all the embeddings at once
-bash run_compression_DMS.sh
-
-# Running the regression model for all the compressed embeddings
-bash run_lassoCV_DMS.sh
+python scripts/run_reg_LassoCV.py -i embeddings/DMS_compressed/esm2_150M/BLAT_ECOLX_Ostermeier2014/embed_layer_30_mean.pkl -m data/DMS_metadata/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/lassoCV/DMS/esm2_150M/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
 ```
 

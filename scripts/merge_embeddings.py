@@ -84,7 +84,7 @@ def main(embed_dir, output_file, model):
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    if model == 'esmc':
+    if 'esmc' in model:
         embeds = load_embeds_from_ESMC(embed_dir)
         print(f"Saving embeddings to {output_file}")
         torch.save(embeds, output_file)

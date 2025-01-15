@@ -80,6 +80,5 @@ do
         # time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_3B/${dir}/" -o "embeddings/DMS_compressed/esm2_3B/${dir}/" -c $method -l 36
         # time python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_15B/${dir}/" -o "embeddings/DMS_compressed/esm2_15B/${dir}/" -c $method -l 48
 
-        time python scripts/merge_embeddings.py -e "embeddings/DMS/esmc_6B/${dir}/" -o "embeddings/DMS_compressed/esmc_6B/${dir}/embed_${dir}_mean.pt" -m esmc                                                    
     done
 done
