@@ -1,5 +1,5 @@
 ---
-title: "stats_plots"
+title: "Data Visualization"
 author: "Luiz and Morgan"
 date: "2024-06-08"
 output: html_document
@@ -286,15 +286,15 @@ multi_mod_DMS <- read.csv(here("results/lassoCV/DMS/DMS_all_multi_model_metadata
 
 multi_mod_DMS <- multi_mod_DMS %>%
   mutate(Model = case_when(
-    Model == "esm1v" ~ "ESM1v",
-    Model == "esm2" ~ "ESM2",
-    Model == "esmc" ~ "ESMC",
-    Model == "amplify" ~ "Amplify"
+    Model == "esm1v" ~ "ESM-1v",
+    Model == "esm2" ~ "ESM-2",
+    Model == "esmc" ~ "ESM C",
+    Model == "amplify" ~ "AMPLIFY"
   )) %>%
   mutate(
     parameters = case_when(
-      parameters == 6.5e8 & Model == "ESM2" ~ 7.8e8,
-      parameters == 6e8 & Model == "ESMC" ~ 5.5e8,
+      parameters == 6.5e8 & Model == "ESM-2" ~ 7.8e8,
+      parameters == 6e8 & Model == "ESM C" ~ 5.5e8,
       TRUE ~ parameters
     )
   ) 
@@ -312,7 +312,7 @@ grouped_multi_mod_DMS <- multi_mod_DMS %>%
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
    
   ) %>%
-  mutate(Model = factor(Model, levels = c("ESM1v", "ESM2", "ESMC", "Amplify"))) %>%
+  mutate(Model = factor(Model, levels = c("ESM-1v", "ESM-2", "ESM C", "AMPLIFY"))) %>%
   ungroup()
 
 
@@ -355,12 +355,12 @@ DMS_all_boxplot <- grouped_multi_mod_DMS %>%
     
     #scale_color_manual(values = color_dict) +
     scale_color_manual(
-      values = colorspace::darken(c(ESM1v = "#000000", ESM2 = "#4292C6",
-                 ESMC = "#228C22", Amplify = "#ff7f0e"), .2)
+      values = colorspace::darken(c(`ESM-1v` = "#000000", `ESM-2` = "#4292C6",
+                 `ESM C` = "#228C22", AMPLIFY = "#ff7f0e"), .2)
     ) +
     scale_fill_manual(
-      values = c(ESM1v = "#00000080", ESM2 = "#9ECAE1",
-                 ESMC = "#5ad75a", Amplify = "#ffb16c")
+      values = c(`ESM-1v` = "#00000080", `ESM-2` = "#9ECAE1",
+                 `ESM C` = "#5ad75a", AMPLIFY = "#ffb16c")
     ) +
     labs(x = "", 
          y = expression(paste("Cross Validation ", R^2)), 
@@ -389,7 +389,7 @@ DMS_all_boxplot <- grouped_multi_mod_DMS %>%
 DMS_all_boxplot
  
 # ggsave(DMS_all_boxplot,
-#       filename = "DMS_all_boxplot.png",
+#       filename = "results/lassoCV/DMS/fig3_multi_model.png",
 #        path = here('figs'),
 #        width = 8,
 #        height = 4,
@@ -1640,15 +1640,15 @@ multi_mod_pisces <- read.csv(here("results/lassoCV/PISCES/PISCES_all_multi_model
 
 multi_mod_pisces <- multi_mod_pisces %>%
   mutate(Model = case_when(
-    Model == "esm1v" ~ "ESM1v",
-    Model == "esm2" ~ "ESM2",
-    Model == "esmc" ~ "ESMC",
-    Model == "amplify" ~ "Amplify"
+    Model == "esm1v" ~ "ESM-1v",
+    Model == "esm2" ~ "ESM-2",
+    Model == "esmc" ~ "ESM C",
+    Model == "amplify" ~ "AMPLIFY"
   )) %>%
   mutate(
     parameters = case_when(
-      parameters == 6.5e8 & Model == "ESM2" ~ 7.8e8,
-      parameters == 6e8 & Model == "ESMC" ~ 5.5e8,
+      parameters == 6.5e8 & Model == "ESM-2" ~ 7.8e8,
+      parameters == 6e8 & Model == "ESM C" ~ 5.5e8,
       TRUE ~ parameters
     )
   )
@@ -1662,7 +1662,7 @@ grouped_multi_mod_pisces <- multi_mod_pisces %>%
     std_score = sd(get('R2_score_test'), na.rm = TRUE),
    
   ) %>%
-  mutate(Model = factor(Model, levels = c("ESM1v", "ESM2", "ESMC", "Amplify"))) %>%
+  mutate(Model = factor(Model, levels = c("ESM-1v", "ESM-2", "ESM C", "AMPLIFY"))) %>%
   ungroup()
 
 
@@ -1676,6 +1676,7 @@ data_medians_pisces <- grouped_multi_mod_pisces %>%
 
 
 ```
+
 ```{r}
 pisces_all_boxplot <- grouped_multi_mod_pisces %>%
   ggplot(aes(
@@ -1695,12 +1696,12 @@ pisces_all_boxplot <- grouped_multi_mod_pisces %>%
                      breaks = scales::log_breaks(),
                      labels = trans_format("log10", math_format(10^.x))) +
     scale_color_manual(
-      values = colorspace::darken(c(ESM1v = "#000000", ESM2 = "#4292C6",
-                 ESMC = "#228C22", Amplify = "#ff7f0e"), .2)
+      values = colorspace::darken(c(`ESM-1v` = "#000000", `ESM-2` = "#4292C6",
+                 `ESM C` = "#228C22", AMPLIFY = "#ff7f0e"), .2)
     ) +
     scale_fill_manual(
-      values = c(ESM1v = "#00000080", ESM2 = "#9ECAE1",
-                 ESMC = "#5ad75a", Amplify = "#ffb16c")
+      values = c(`ESM-1v` = "#00000080", `ESM-2` = "#9ECAE1",
+                 `ESM C` = "#5ad75a", AMPLIFY = "#ffb16c")
     ) +
     labs(x = "", 
          y = expression(paste("Cross Validation ", R^2)), 
@@ -2363,12 +2364,13 @@ fig3_multi_mod <- plot_grid(DMS_all_boxplot,
                             ncol = 1, 
                             rel_heights = c(1.1, 1))
 
-# ggsave(fig3_multi_mod,
-#        filename = "fig3_multi_mod.png",
-#        path = here("figs"),
-#        width = 8,
-#        height = 8,
-#        dpi=600)
+ggsave(fig3_multi_mod,
+       filename = "fig3_multi_mod.png",
+       #path = here("figs"),
+       path = 'results/lassoCV/DMS/',
+       width = 8,
+       height = 8,
+       dpi=600)
 
 fig3_multi_mod
 ```

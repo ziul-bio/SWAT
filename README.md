@@ -47,7 +47,6 @@ pip install esm/
 
 # install remaning dependencies
 pip install fair-esm
-
 ```
 
 1. **Extract embeddings**:  
