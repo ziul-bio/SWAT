@@ -447,14 +447,17 @@ excluded_sup3 <- exclude_multi_mod_DMS %>%
                  aes(fill = Dataset_Name),
                  stroke = .2
                  ) + 
-    
-    geom_ribbon(aes(
-      ymin = mean_score - std_score,
-      ymax = mean_score + std_score, fill = Dataset_Name), alpha = 0.2, color = NA) +
   
       scale_x_log10(trans = scales::log_trans(),
                        breaks = scales::log_breaks(),
                        labels = trans_format("log10", math_format(10^.x))) +
+    geom_errorbar(aes(
+      ymin = mean_score - std_score, 
+      ymax = mean_score + std_score), 
+      width = 0.1,
+      alpha = 1,
+      #position = position_dodge(width = .2)
+      ) +
       
       labs(x = "Parameters", 
            y = expression(paste("Cross Validation ", R^2)), 
