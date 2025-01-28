@@ -55,8 +55,7 @@ def run_regression(features, target):
         # Define and train the regression model
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=ConvergenceWarning)
-            #model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=-1) # v01
-            model = LassoCV(cv=None, random_state=42, max_iter=1000, tol=1e-2, n_jobs=-1)
+            model = LassoCV(max_iter=1000, tol=1e-2, n_jobs=-1)
             model.fit(X_train, y_train)
 
             # get the number of non-zero coefficients
