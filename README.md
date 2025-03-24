@@ -49,7 +49,7 @@ pip install esm/
 pip install fair-esm
 ```
 
-1. **Data pre processing**
+1. **Data pre processing**    
 I have made available most of the metadata for both datasets (DMSs and PISCES).
 However, due to size limit of 100Mb, per file in the github, you may need to run the pre processing notebook to get the mutated sequences and metadata for the HIS7 dataset. These notebooks, show exactly how I computed and genarated all the target variables for each dataset.
 ```bash
