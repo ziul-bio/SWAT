@@ -89,4 +89,4 @@ python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_150M/embed_p
 ```
 
 #### Footnote    
-P.S. Please if you find any issue or need a file or script that I for any reason forgot to upload, please open I issue. I will fix it right away.
+If you find any issues or need a file or script that I forgot to upload for any reason, please open an issue. I will fix it right away.
