@@ -60,21 +60,30 @@ PISCES_pre_processing.ipynb
 
 ```
 
-2. **Extract embeddings**:  
+2. **Extract embeddings**:      
+My embeddings directory has approximatlly 1.69 TB in size. At the moment you will have to run the embeddings extraction to be able to run the analysis on your own. In the future I plan to make it avaible online. 
+
+Till then, you can run the following code to extract the embeddings to all DMS and PISCES datasets.   
+```bash
+bash scripts/run_extraction_DMS.sh
+# or
+bash scripts/run_compression_PISCES.sh
+```
+
 ```bash
 # Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
-python scripts/extract.py esm2_t30_150M_UR50D data/DMS_mut_sequences/BLAT_ECOLX_Ostermeier2014_muts.fasta embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M --repr_layers 30 --include bos mean per_tok
+python scripts/extract.py esm2_t30_150M_UR50D data/PISCES/pisces_len64-1022.fasta embeddings/PISCES/esm2_150M --repr_layers 30 --include bos mean per_tok
 ```
 
 3. **Compress embeddings**:  
 ```bash
 # Then we can compress the embeddings with the following command
-python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -o "embeddings/DMS_compressed/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -c mean -l 30
+python scripts/compressing_embeddings.py -e "embeddings/PISCES/esm2_150M/" -o "embeddings/PISCES_compressed/esm2_150M/" -c mean -l 30
 ```
 
 4. **Regression Model**:  
 ```bash
 # with the compressed embedding we can run the regression model, see script for more details
-python scripts/run_reg_LassoCV.py -i embeddings/DMS_compressed/esm2_150M/BLAT_ECOLX_Ostermeier2014/embed_layer_30_mean.pkl -m data/DMS_metadata/BLAT_ECOLX_Ostermeier2014_metadata.csv -o results/lassoCV/DMS/esm2_150M/BLAT_ECOLX_Ostermeier2014_esm2_150M_mean.csv
+python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_150M/embed_pisces_mean.pkl" -m "data/PISCES_metadata/SS_H.csv" -o "results/lassoCV/PISCES/esm2_150M/SS_H_esm2_150M_mean.csv"
 ```
 

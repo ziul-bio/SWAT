@@ -82,10 +82,10 @@ do
     # python scripts/extract_ESMC.py -m esmc-600m -i "data/DMS_mut_sequences/${file}_muts.fasta" -o embeddings/DMS_compressed/esmc_600M/${file}/embed_${file}_mean.pt
 
     # echo "Extracting embedding for $file with Amplify 120M"
-    # python -u scripts/extract_AMPLIFY.py -m models/AMPLIFY_120M -i "data/DMS_mut_sequences/${file}_muts_2.fasta" -o embeddings/DMS_compressed/AMPLIFY_120M/${file}/embed_${file}_mean.pt
+    # python -u scripts/extract_AMPLIFY.py -m models/AMPLIFY_120M -i "data/DMS_mut_sequences/${file}_muts.fasta" -o embeddings/DMS_compressed/AMPLIFY_120M/${file}/embed_${file}_mean.pt
 
     # echo "Extracting embedding for $file with Amplify 350M"
-    # python -u scripts/extract_AMPLIFY.py -m models/AMPLIFY_350M -i "data/DMS_mut_sequences/${file}_muts_2.fasta" -o embeddings/DMS_compressed/AMPLIFY_350M/${file}/embed_${file}_mean.pt
+    # python -u scripts/extract_AMPLIFY.py -m models/AMPLIFY_350M -i "data/DMS_mut_sequences/${file}_muts.fasta" -o embeddings/DMS_compressed/AMPLIFY_350M/${file}/embed_${file}_mean.pt
 
 done
 
