@@ -88,3 +88,5 @@ python scripts/compressing_embeddings.py -e "embeddings/PISCES/esm2_150M/" -o "e
 python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_150M/embed_pisces_mean.pkl" -m "data/PISCES_metadata/SS_H.csv" -o "results/lassoCV/PISCES/esm2_150M/SS_H_esm2_150M_mean.csv"
 ```
 
+#### Footnote    
+P.S. Please if you find any issue or need a file or script that I for any reason forgot to upload, please open I issue. I will fix it right away.
