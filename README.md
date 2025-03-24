@@ -67,12 +67,13 @@ Till then, you can run the following code to extract the embeddings to all DMS a
 ```bash
 # Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
 
-bash scripts/run_extraction_DMS.sh
-# or
-bash scripts/run_compression_PISCES.sh
-
-# or you can also do file by file. Example pisces:
+# you can run file by file. Example pisces:
 python scripts/extract.py esm2_t30_150M_UR50D data/PISCES/pisces_len64-1022.fasta embeddings/PISCES/esm2_150M --repr_layers 30 --include bos mean per_tok
+
+# or in a loop. Please see the scripts folder. For most of the analysis I have a bash file that will run a loop to all experiments.
+bash scripts/run_extraction_DMS.sh
+# and
+bash scripts/run_compression_PISCES.sh
 ```
 
 3. **Compress embeddings**:  
