@@ -21,7 +21,7 @@ Protein language models such as the  transformer-based Evolutionary Scale Modeli
 This work challenges the common belief that larger language models always yield better results, here in the context of protein biochemistry. By systematically comparing transformer models of different sizes in transfer learning tasks, we demonstrate that medium size models, such as ESM2 650M, frequently perform as well as larger variants, specially when data is limited. These findings provide a more efficient strategy for machine learning-based protein analysis and promote the broader accessibility of AI in biology. Smaller, more efficient models can help democratize advanced machine-learning tools, making them more accessible to researchers with limited computational resources
 
 
-**Keywords:** ESM2 | pLM Embeddings | Feature compression | Transfer Learning 
+**Keywords:** pLM Embeddings | Feature compression | Transfer Learning 
 
 
 
@@ -49,13 +49,24 @@ pip install esm/
 pip install fair-esm
 ```
 
-1. **Extract embeddings**:  
+1. **Data pre processing**
+I have made available most of the metadata for both datasets (DMSs and PISCES).
+However, due to size limit of 100Mb, per file in the github, you may need to run the pre processing notebook to get the mutated sequences and metadata for the HIS7 dataset. These notebooks, show exactly how I computed and genarated all the target variables for each dataset.
+```bash
+#Open and run
+DMS_pre_processing.ipynb
+
+PISCES_pre_processing.ipynb
+
+```
+
+2. **Extract embeddings**:  
 ```bash
 # Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
 python scripts/extract.py esm2_t30_150M_UR50D data/DMS_mut_sequences/BLAT_ECOLX_Ostermeier2014_muts.fasta embeddings/DMS/BLAT_ECOLX_Ostermeier2014_esm2_150M --repr_layers 30 --include bos mean per_tok
 ```
 
-2. **Compress embeddings**:  
+3. **Compress embeddings**:  
 ```bash
 # Then we can compress the embeddings with the following command
 python scripts/compressing_embeddings.py -e "embeddings/DMS/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -o "embeddings/DMS_compressed/esm2_150M/BLAT_ECOLX_Ostermeier2014/" -c mean -l 30
