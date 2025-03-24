@@ -65,13 +65,13 @@ My embeddings directory has approximatlly 1.69 TB in size. At the moment you wil
 
 Till then, you can run the following code to extract the embeddings to all DMS and PISCES datasets.   
 ```bash
+# Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
+
 bash scripts/run_extraction_DMS.sh
 # or
 bash scripts/run_compression_PISCES.sh
-```
 
-```bash
-# Once we have all the fasta files and metadata we can extract the embeddings for each fasta.
+# or you can also do file by file. Example pisces:
 python scripts/extract.py esm2_t30_150M_UR50D data/PISCES/pisces_len64-1022.fasta embeddings/PISCES/esm2_150M --repr_layers 30 --include bos mean per_tok
 ```
 
