@@ -23,6 +23,99 @@ library(scales)
 
 ```
 
+# DMS layers sup
+```{r}
+
+DMS_layer_data <- read.csv(here("results/lassoCV/DMS/DMS_esmc_300_lassoCV_all_layers.csv"))
+DMS_data_ordered <- c('YAP1 singles', 'BRCA1 RING', 'UBE4B MOUSE', 'BLAT ECOLX 2013', 'PABP singles', 'GAL4 YEAST', 'RL401 2013', 'RL401 2016', 'RL401 2014', 'IF1 ECOLI', 'BRCA1 BRCT', 'TIM SULSO', 'TIM THEMA', 'TIM THETH', 'DLG4 RAT', 'POLG HCVJF', 'MTH3 HAEAESTABILIZED', 'SUMO1 HUMAN', 'CALM1 HUMAN', 'PA FLU', 'UBC9 HUMAN', 'RASH HUMAN', 'TPK1 HUMAN', 'BG STRSQ', 'TPMT HUMAN', 'PTEN HUMAN', 'HSP82 YEAST', 'BLAT ECOLX 2015', 'KKA2 KLEPN', 'BLAT ECOLX 2012', 'BLAT ECOLX 2014', 'AMIE PSEAE', 'MK01 HUMAN', 'B3VI55 LIPST', 'B3VI55 LIPSTSTABLE', 'parEparD all', 'HG FLU', 'BF520 env', 'BG505 env', 'PABP doubles')
+
+
+DMS_layer_data$Dataset <- factor(DMS_layer_data$Dataset, levels = DMS_data_ordered)
+
+
+
+plot <- ggplot(DMS_layer_data) +
+  geom_line(aes(x = Layer, y = R2_score_train, color = "Train")) + 
+  geom_line(aes(x = Layer, y = R2_score_test, color = "Test")) +
+  
+  labs(x = "Layer", 
+      y = expression(paste("Cross Validation ", R^2)), 
+      color = ""
+           ) +
+
+
+  #labs(color = "Metric") +
+  theme_minimal_grid(12, rel_small = 1)+  # Adjust base size as needed for figure size
+  theme(
+          legend.position = "top",
+          panel.background = element_rect(fill = "white", colour = "white"),
+          plot.background = element_rect(fill = "white", colour = "white"),
+        
+  
+          panel.border = element_rect(color = "black", 
+                                      fill = NA, 
+                                      size = .5),
+          axis.line = element_blank(),
+          axis.ticks.x = element_line(color = "black"),
+          axis.ticks.y = element_line(color = "black"),
+          plot.margin = margin(10, 10, 0, 10))+
+      facet_wrap(~ Dataset, ncol = 4) 
+
+# Display the plot
+plot
+
+# 
+# ggsave(plot,
+#       filename = "DMS_Layers_all_datasets.png",
+#        path = here('figs'),
+#        width = 9,
+#        height = 12,
+#       dpi=600)
+
+
+```
+
+
+```{r}
+
+DMS_layer_data <- read.csv(here("DMS_esmc_best_layer.csv"))
+
+
+DMS_best_layer <- ggplot(DMS_layer_data, 
+       aes(x = factor(Layer), 
+           y = Count)
+       ) +
+  geom_bar(stat = "summary", 
+           fill = "skyblue", color = "black") +
+  theme_minimal() +
+  labs(
+    #title = "Best Layer Counts for DMS",
+    x = "Layer",
+    y = "Count"
+  ) +
+  theme_minimal_grid(12, rel_small = 1)+
+  theme(
+      legend.position = "top",
+      panel.background = element_rect(fill = "white", colour = "white"),
+      plot.background = element_rect(fill = "white", colour = "white"),
+    
+
+      panel.border = element_rect(color = "black", 
+                                  fill = NA, 
+                                  size = .5),
+      axis.line = element_blank(),
+      axis.ticks.x = element_line(color = "black"),
+      axis.ticks.y = element_line(color = "black"))
+
+# ggsave(DMS_best_layer,
+#       filename = "sup9_DMS_best_layer.png",
+#        path = here('figs'),
+#        width = 7,
+#        height = 4,
+#       dpi=600)
+DMS_best_layer
+
+```
 
 
 
@@ -1708,7 +1801,7 @@ pisces_all_boxplot <- grouped_multi_mod_pisces %>%
       values = c(`ESM-1v` = "#00000080", `ESM-2` = "#9ECAE1",
                  `ESM C` = "#5ad75a", AMPLIFY = "#ffb16c")
     ) +
-    labs(x = "", 
+    labs(x = "Parameters", 
          y = expression(paste("Cross Validation ", R^2)), 
          #title = ""
          color = ""
@@ -2215,13 +2308,13 @@ fig3_multi_mod <- plot_grid(DMS_all_boxplot,
                             ncol = 1, 
                             rel_heights = c(1.1, 1))
 
-ggsave(fig3_multi_mod,
-       filename = "fig3_multi_mod.png",
-       #path = here("figs"),
-       path = 'results/lassoCV/DMS/',
-       width = 8,
-       height = 8,
-       dpi=600)
+# ggsave(fig3_multi_mod,
+#        filename = "fig3_multi_mod.png",
+#        #path = here("figs"),
+#        path = 'results/lassoCV/DMS/',
+#        width = 8,
+#        height = 8,
+#        dpi=600)
 
 fig3_multi_mod
 ```
