@@ -16,18 +16,14 @@ from sklearn import metrics
 from scipy.stats import spearmanr
 
 from peft import get_peft_model, LoraConfig
-from ESM2ne_Lora_regression import Load_from_pretrained
+from ESM2ne_Lora import Load_from_pretrained
 
 
 
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Ranganathan2015_metadata.csv -o results/fineTune/DMS/lora/esm2_150M/BLAT_ECOLX_Ranganathan2015_lora_res.csv --epochs 50 --batch_size 32 --checkpoint_path ../ESM2_checkpoints/esm2_t30_150M_UR50D.pt
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/PABP_YEAST_Fields2013_singles_metadata.csv -o results/fineTune/DMS/lora/esm2_650M/PABP_YEAST_Fields2013_singles.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt --device cuda:3
 
-# testing new lora rank and alpha
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/HSP82_YEAST_Bolon2016_metadata.csv -o results/fineTune/DMS/lora_v02/esm2_3B/HSP82_YEAST_Bolon2016.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t36_3B_UR50D.pt --device cuda:3 --batch_size 4 --lora_r 8 --lora_alpha 16
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Ranganathan2015_metadata.csv -o results/fineTune/DMS/lora_v02/esm2_150M/BLAT_ECOLX_Ranganathan2015.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t30_150M_UR50D.pt --device cuda:3 --batch_size 4 --lora_r 8 --lora_alpha 16
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Ranganathan2015_metadata.csv -o results/fineTune/DMS/lora_v02/esm2_150M/BLAT_ECOLX_Ranganathan2015.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t30_150M_UR50D.pt --device cuda:3 --batch_size 4 --lora_r 8 --lora_alpha 32
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Ranganathan2015_metadata.csv -o results/fineTune/test/BLAT_ECOLX_Ranganathan2015_lr3e5_bs4_r8_a32.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t30_150M_UR50D.pt --device cuda:3 --batch_size 4 --learning_rate 3e-5 --lora_r 8 --lora_alpha 32
+#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/IF1_ECOLI_metadata.csv -o results/fineTune/test/esm2_650M/IF1_ECOLI.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt --epochs 20
+                                          
+#python scripts/ESM2ne_Lora_trainer.py -i data/PISCES_metadata/SS_E.csv -o results/fineTune/PISCES/lora/esm2_3B/SS_E.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t36_3B_UR50D.pt --device cuda:0 --batch_size 4
 
 
 def parse_args():
@@ -36,15 +32,15 @@ def parse_args():
     parser.add_argument("-o", "--output", type=str, required=True, help="Output CSV file path.")
     parser.add_argument("--checkpoint_path", type=str, default="esm2_t30_150M_UR50D", help="Model checkpoint name or full path.")
     parser.add_argument("--num_classes", type=int, default=1, help="Number of classes (1 for regression).")
-    parser.add_argument("--epochs", type=int, default=50, help="Number of epochs.")
+    parser.add_argument("--epochs", type=int, default=40, help="Number of epochs.")
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size.")
     parser.add_argument("--device", type=str, default=("cuda" if torch.cuda.is_available() else "cpu"), help="Device for training.")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate.")
     parser.add_argument("--weight_decay", type=float, default=1e-6, help="Weight decay.")
-    parser.add_argument("--hidden_dropout", type=float, default=0.1, help="Hidden dropout probability.")
+    parser.add_argument("--dropout", type=float, default=0.1, help="CLS dropout probability.")
 
-    parser.add_argument('--lora_r', type=int, default=8, help='Rank of the low-rank decomposition.')
-    parser.add_argument('--lora_alpha', type=int, default=32, help='Scaling factor for LoRA.')
+    parser.add_argument('--lora_r', type=int, default=4, help='Rank of the low-rank decomposition.')
+    parser.add_argument('--lora_alpha', type=int, default=32, help='Scaling factor for LoRA weights. alpha/rank.')
     parser.add_argument('--lora_dropout', type=float, default=0.01, help='Dropout rate for LoRA.')
     parser.add_argument('--lora_modules', nargs='*', type=str, default=["q_proj", "v_proj"], help='Modules to apply LoRA. Default is q_proj, v_proj, as implemented by Microsoft.')
     return parser.parse_args()
@@ -84,7 +80,7 @@ class Trainer:
         self.args = args
         self.device = torch.device(args.device)
         self.model_loader = Load_from_pretrained(
-            checkpoint_path=args.checkpoint_path, num_classes=args.num_classes, hidden_dropout=args.hidden_dropout,
+            checkpoint_path=args.checkpoint_path, num_classes=args.num_classes, dropout=args.dropout,
             lora_r=args.lora_r, lora_alpha=args.lora_alpha, lora_dropout=args.lora_dropout,
             lora_modules=args.lora_modules)
         self.model, self.alphabet = self.model_loader.get_model_details()
@@ -93,8 +89,8 @@ class Trainer:
         self.model.to(self.device)
         self.model.print_trainable_parameters()
 
-        print('\nMemory allocated:')
-        print(f"Sumary: {torch.cuda.memory_summary(device=self.device)}\n")
+        # print('\nMemory allocated:')
+        # print(f"Sumary: {torch.cuda.memory_summary(device=self.device)}\n")
 
         print("\nLoading dataset...")
         self.train_data, self.val_data = self.load_dataset(self.args.data)
@@ -113,7 +109,7 @@ class Trainer:
     @staticmethod
     def DataLoaders(data, alphabet, batch_size, shuffle=False):
         dataset = Esm2Tokenizer(data, alphabet)
-        return DataLoader(dataset, batch_size=batch_size, num_workers=8, shuffle=shuffle)
+        return DataLoader(dataset, batch_size=batch_size, num_workers=4, shuffle=shuffle)
 
 
     #################### Training loop ####################
@@ -209,7 +205,7 @@ if __name__ == '__main__':
     
     print('Training arguments:')
     print(f"Batch size: {args.batch_size}, Number of classes: {args.num_classes}, Number of epochs: {args.epochs}")
-    print(f"Learning rate: {args.learning_rate}, Weight decay: {args.weight_decay}, Hidden layer dropout: {args.hidden_dropout}")
+    print(f"Learning rate: {args.learning_rate}, Weight decay: {args.weight_decay}, CLS Dropout: {args.dropout}")
     # print(f"LoRA rank: {args.lora_r}, LoRA alpha: {args.lora_alpha}, LoRA dropout: {args.lora_dropout}")
     # print(f"LoRA modules: {args.lora_modules}")
     print()

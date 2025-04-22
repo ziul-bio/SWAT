@@ -7,12 +7,12 @@ from peft import get_peft_model, LoraConfig, TaskType
 
 # Load the pre-trained ESM-2 model
 class ClassificationHead(nn.Module):
-    def __init__(self, embed_dim, num_classes, hidden_dropout):
+    def __init__(self, embed_dim, num_classes, dropout):
         super(ClassificationHead, self).__init__()
         self.dense = nn.Linear(embed_dim, embed_dim)
         self.layer_norm = nn.LayerNorm(embed_dim)  # Normalize hidden states
         self.out_proj = nn.Linear(embed_dim, num_classes) 
-        self.dropout = nn.Dropout(hidden_dropout)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, features):
         x = features[:, 0, :]  # CLS token
@@ -25,10 +25,10 @@ class ClassificationHead(nn.Module):
 
 
 class Load_from_pretrained:
-    def __init__(self, checkpoint_path, num_classes, hidden_dropout, lora_r, lora_alpha, lora_dropout, lora_modules):
+    def __init__(self, checkpoint_path, num_classes, dropout, lora_r, lora_alpha, lora_dropout, lora_modules):
         self.checkpoint_path = checkpoint_path
         self.num_classes = num_classes
-        self.hidden_dropout = hidden_dropout
+        self.dropout = dropout
         self.model, self.alphabet = None, None
         self.model_dimension = 0
         self._load_model()
@@ -82,7 +82,7 @@ class Load_from_pretrained:
     
         # replacing classification head to match the number of classes, regression or classification
         self.model_dimension = self.model.embed_dim
-        self.model.lm_head = ClassificationHead(self.model_dimension, self.num_classes, self.hidden_dropout)
+        self.model.lm_head = ClassificationHead(self.model_dimension, self.num_classes, self.dropout)
 
 
     def _add_lora_layers(self):
