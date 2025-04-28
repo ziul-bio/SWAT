@@ -50,15 +50,16 @@ def parse_args():
 
 ############## Dataset ##############
 class Esm2Tokenizer(Dataset):
-    def __init__(self, data_file, alphabet):
-        """ this class expect that data to be a dataframe with 3 columns: ID, sequence, target.
+    """ This class expect that data to be a dataframe with 3 columns: ID, sequence, target.
         Then the first part will convert it to a list of tuples: [(sequence_id, sequence_str, target), ...],
-        as expected by batch_converter."""
-        # Extract sequences and labels (targets) for batch conversion
+        as expected by batch_converter.
+        In this class all the sequences are converted to tokens using the tokenizer.
+        And all the sequences will be padded to the size of the largest sequence in the dataset."""
+    def __init__(self, data_file, alphabet):
         self.data = data_file
         sequences = [(d['ID'], d['sequence']) for _, d in self.data.iterrows()]  
         self.targets = [d['target'] for _, d in self.data.iterrows()]  
-        # Convert sequences to tokens, and padding them accordingly with the longest sequence
+        # Convert sequences to tokens, and padding them accordingly with the longest sequence in the dataset
         batch_converter = alphabet.get_batch_converter()
         self.batch_labels, self.batch_strs, self.batch_tokens = batch_converter(sequences)
 

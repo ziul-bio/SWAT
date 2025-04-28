@@ -2,7 +2,7 @@ import os
 import esm
 import torch
 import torch.nn as nn
-from peft import get_peft_model, LoraConfig, TaskType
+from peft import get_peft_model, LoraConfig
 
 
 # Load the pre-trained ESM-2 model
@@ -55,14 +55,15 @@ class Load_from_pretrained:
             'esm2_t33_650M_UR50D', 'esm2_t36_3B_UR50D', 'esm2_t48_15B_UR50D'
             ]
 
+        model_name = self.checkpoint_path.split('/')[-1].split('.')[0]
+        # load from full path
         if self.checkpoint_path.endswith('.pt'):
-            model_name = self.checkpoint_path.split('/')[-1].split('.')[0]
             if not os.path.exists(self.checkpoint_path):
                 raise FileNotFoundError(f"Checkpoint file not found: {self.checkpoint_path}")
             else:
                 print(f"Loading model {model_name} from full path and preparing for fine-tuning...")
                 self.model, self.alphabet = esm.pretrained.load_model_and_alphabet(self.checkpoint_path)
-        
+        # load from cache        
         elif self.checkpoint_path in supported_models:
             print(f"Loading model {self.checkpoint_path} and preparing for fine-tuning...")
             if self.checkpoint_path == 'esm2_t6_8M_UR50D':
@@ -73,9 +74,11 @@ class Load_from_pretrained:
                 self.model, self.alphabet = esm.pretrained.esm2_t30_150M_UR50D()
             elif self.checkpoint_path == 'esm2_t33_650M_UR50D':
                 self.model, self.alphabet = esm.pretrained.esm2_t33_650M_UR50D()
-            elif self.checkpoint_path == 'esm2_t36_3B_UR50D' or self.checkpoint_path == 'esm2_t48_15B_UR50D':
-                print('Those models are too big to be downloaded into the home directory.')
-                print('Please download them into the working repository and pass the full checkpoints path.')
+            elif self.checkpoint_path == 'esm2_t36_3B_UR50D':
+                self.model, self.alphabet = esm.pretrained.esm2_t36_3B_UR50D()
+            elif self.checkpoint_path == 'esm2_t48_15B_UR50D':
+                print('This model is too big to be downloaded into the home directory.')
+                print('Download it into the working repository and pass the full checkpoints path.')
         elif self.checkpoint_path not in supported_models:
             raise ValueError(f"Model {model_name} not supported. Supported models are: {supported_models}")
 
@@ -97,5 +100,7 @@ class Load_from_pretrained:
     
     def get_model_details(self):
         return self.model, self.alphabet
+
+
 
 
