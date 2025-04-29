@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument("--checkpoint_path", type=str, default="esm2_t6_8M_UR50D", help="Model checkpoint name or full path.")
     parser.add_argument("--num_classes", type=int, default=1, help="Number of classes (1 for regression).")
     parser.add_argument("--epochs", type=int, default=40, help="Number of epochs.")
-    parser.add_argument("--batch_size", type=int, default=8, help="Batch size.")
+    parser.add_argument("--batch_size", type=int, default=2, help="Batch size.")
     parser.add_argument("--device", type=str, default=("cuda" if torch.cuda.is_available() else "cpu"), help="Device for training.")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate.")
     parser.add_argument("--weight_decay", type=float, default=1e-5, help="Weight decay.")
@@ -201,8 +201,8 @@ def main():
         
     trainer = pl.Trainer(
         accelerator="gpu",
-        #strategy="ddp",
-        devices=1, #[1, 2, 3],                  # [0, 1] for 2 GPUs, or -1 for all available GPUs
+        strategy="ddp",
+        devices=[0, 1, 2, 3],                  # [0, 1] for 2 GPUs, or -1 for all available GPUs
         #accumulate_grad_batches=4,          # simulate a 4× larger batch size (so 3x4=16)
         max_epochs= args.epochs,
         enable_checkpointing=False,
