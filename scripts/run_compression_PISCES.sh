@@ -14,11 +14,11 @@ for method in "${methods[@]}"
 do
     echo 'Running compression for method: ' $method
     time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm1v_650M/" -o "embeddings/PISCES_compressed/PISCES_esm1v_650M/" -c $method -l 33
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_8M/" -o "embeddings/PISCES_compressed/PISCES_esm2_8M/" -c $method -l 6
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_35M/" -o "embeddings/PISCES_compressed/PISCES_esm2_35M/" -c $method -l 12
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_150M/" -o "embeddings/PISCES_compressed/PISCES_esm2_150M/" -c $method -l 30
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_650M/" -o "embeddings/PISCES_compressed/PISCES_esm2_650M/" -c $method -l 33
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_3B/" -o "embeddings/PISCES_compressed/PISCES_esm2_3B/" -c $method -l 36
-    #time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_15B/" -o "embeddings/PISCES_compressed/PISCES_esm2_15B/" -c $method -l 48
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_8M/" -o "embeddings/PISCES_compressed/PISCES_esm2_8M/" -c $method -l 6
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_35M/" -o "embeddings/PISCES_compressed/PISCES_esm2_35M/" -c $method -l 12
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_150M/" -o "embeddings/PISCES_compressed/PISCES_esm2_150M/" -c $method -l 30
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_650M/" -o "embeddings/PISCES_compressed/PISCES_esm2_650M/" -c $method -l 33
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_3B/" -o "embeddings/PISCES_compressed/PISCES_esm2_3B/" -c $method -l 36
+    time python scripts/compressing_embeddings.py -e "embeddings/PISCES/PISCES_esm2_15B/" -o "embeddings/PISCES_compressed/PISCES_esm2_15B/" -c $method -l 48
 done
 

@@ -21,9 +21,8 @@ from ESM2ne_Lora import Load_from_pretrained
 
 
 
-#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/IF1_ECOLI_metadata.csv -o results/fineTune/test/esm2_650M/IF1_ECOLI.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt --epochs 20
+#python scripts/ESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test/esm2_650M/BLAT_ECOLX_Tenaillon2013/metrics_v01.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt
                                           
-#python scripts/ESM2ne_Lora_trainer.py -i data/PISCES_metadata/SS_E.csv -o results/fineTune/PISCES/lora/esm2_3B/SS_E.csv --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t36_3B_UR50D.pt --device cuda:0 --batch_size 4
 
 
 def parse_args():
@@ -33,10 +32,10 @@ def parse_args():
     parser.add_argument("--checkpoint_path", type=str, default="esm2_t30_150M_UR50D", help="Model checkpoint name or full path.")
     parser.add_argument("--num_classes", type=int, default=1, help="Number of classes (1 for regression).")
     parser.add_argument("--epochs", type=int, default=40, help="Number of epochs.")
-    parser.add_argument("--batch_size", type=int, default=4, help="Batch size.")
+    parser.add_argument("--batch_size", type=int, default=8, help="Batch size.")
     parser.add_argument("--device", type=str, default=("cuda" if torch.cuda.is_available() else "cpu"), help="Device for training.")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate.")
-    parser.add_argument("--weight_decay", type=float, default=1e-6, help="Weight decay.")
+    parser.add_argument("--weight_decay", type=float, default=1e-5, help="Weight decay.")
     parser.add_argument("--dropout", type=float, default=0.1, help="CLS dropout probability.")
 
     parser.add_argument('--lora_r', type=int, default=4, help='Rank of the low-rank decomposition.')
@@ -98,7 +97,6 @@ class Trainer:
 
         self.train_loader = self.DataLoaders(self.train_data, self.alphabet, args.batch_size, shuffle=True)
         self.val_loader = self.DataLoaders(self.val_data, self.alphabet, args.batch_size, shuffle=False)
-
         print(f"Train Samples: {len(self.train_data)}, Validation Samples: {len(self.val_data)}\n")
 
     
@@ -168,6 +166,11 @@ class Trainer:
         optimizer = AdamW(self.model.parameters(), lr=self.args.learning_rate, weight_decay=self.args.weight_decay)
         metrics_all = {'Epoch':[], 'train_loss': [], 'train_r2': [], 'train_rho': [], 'val_loss': [], 'val_r2': [], 'val_rho': []}
         
+        # Early stopping args
+        best_val_loss = float('inf')
+        patience_counter = 0
+        patience = 5 
+        
         for epoch in range(self.args.epochs):
             train_loss, train_r2, train_rho = self.train_loop(optimizer, loss_function)
             val_loss, val_r2, val_rho = self.eval_loop(loss_function)
@@ -191,6 +194,16 @@ class Trainer:
             print(f"|------------------------------------------|")
             print(f"| Rho    | {metrics_all['train_rho'][epoch]:^14.3f} | {metrics_all['val_rho'][epoch]:^14.3f} |")
             print(f"|------------------------------------------|\n")
+
+            # Early stopping check
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= patience:
+                    print(f"Early stopping triggered at epoch {epoch+1}.")
+                    break
 
 
         # Save metrics

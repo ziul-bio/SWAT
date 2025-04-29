@@ -9,10 +9,9 @@ import argparse
 import time
 from tqdm import tqdm
 
-## Usage
+## Usage: this script load the matrix embed, convert it into a embed vector, and creates a single file with all proteins in a dataset.
 # python scripts/merge_embeddings.py -e embeddings/PISCES/esmc_6B -o embeddings/PISCES_compressed/esmc_6B/embed_pisces_mean.pt -m esmc
 # python scripts/merge_embeddings.py -e embeddings/DMS/esmc_6B/PABP_YEAST_Fields2013_doubles/ -o embeddings/DMS_compressed/esmc_6B/PABP_YEAST_Fields2013_doubles/embed_PABP_YEAST_Fields2013_doubles_mean.pt -m esmc
-
 # python scripts/merge_embeddings.py -e embeddings/HIS7/esm2_8M_mean -o embeddings/HIS7_compressed/esm2_8M/embed_pisces_mean.pt -m esm2_8M
 
 
