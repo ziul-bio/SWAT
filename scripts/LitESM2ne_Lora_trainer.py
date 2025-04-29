@@ -19,8 +19,8 @@ import sys
 sys.path.append("../SWAT/")
 from scripts.ESM2ne_Lora import Load_from_pretrained
 
-#python scripts/LitESM2ne_Lora_trainer_v02.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt
-#python scripts/LitESM2ne_Lora_trainer_v02.py -i data/DMS_metadata/YAP1_HUMAN_Fields2012_singles_metadata.csv -o results/fineTune/test
+#python scripts/LitESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test --checkpoint_path ../../wilkelab/pLMs_checkpoints/ESM2/esm2_t33_650M_UR50D.pt
+#python scripts/LitESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test
 
 
 def parse_args():

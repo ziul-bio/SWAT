@@ -106,7 +106,7 @@ python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_150M/embed_p
 python scripts/LitESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test --batch_size 2
 
 ## To fine-tune all the 31 DMS datasets, as presented in our results, run:
-scripts/LitESM2ne_run.sh 
+bash scripts/LitESM2ne_run.sh 
 ```
 
 #### Footnote    
