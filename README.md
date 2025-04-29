@@ -18,10 +18,10 @@ Protein language models such as the  transformer-based Evolutionary Scale Modeli
 
 ### Significance
 
-This work challenges the common belief that larger language models always yield better results, here in the context of protein biochemistry. By systematically comparing transformer models of different sizes in transfer learning tasks, we demonstrate that medium size models, such as ESM2 650M, frequently perform as well as larger variants, specially when data is limited. These findings provide a more efficient strategy for machine learning-based protein analysis and promote the broader accessibility of AI in biology. Smaller, more efficient models can help democratize advanced machine-learning tools, making them more accessible to researchers with limited computational resources
+This work challenges the common belief that larger language models always yield better results, here in the context of protein biochemistry. By systematically comparing transformer models of different sizes in transfer learning tasks, we demonstrate that medium size models, such as ESM-2 650M, frequently perform as well as larger variants, specially when data is limited. These findings provide a more efficient strategy for machine learning-based protein analysis and promote the broader accessibility of AI in biology. Smaller, more efficient models can help democratize advanced machine-learning tools, making them more accessible to researchers with limited computational resources
 
 
-**Keywords:** pLM Embeddings | Feature compression | Transfer Learning 
+**Keywords:** ESM | Transfer learning | pLM embeddings | Embeddings compression 
 
 
 
@@ -39,14 +39,23 @@ git clone git@github.com:ziul-bio/SWAT.git
 # move in
 cd SWAT
 
-# create a python3.10 or higher virtual environment
-python3.10 -m venv venv
+# create a python3.10 or higher virtual environment to run ESMC
+python3.10 -m venv venv_ESMC
 
 # install our version of the ESMC, modified to garantee reproducibility. See methods.
 pip install esm/
 
 # install remaning dependencies
-pip install fair-esm
+pip install -r requirements.txt
+
+
+# I highly recoment you to create a separate enviroment to ESM-2.
+# since esmc and esm2 have similar libraries names, this may cause conflicts, specially when loading_from_pretrained is called.
+# By loading the models from a local folder, I did not encounter any problem.
+python3.10 -m venv venv_ESM2
+
+# install remaning dependencies
+pip install -r requirements.txt
 ```
 
 1. **Data pre processing**    
@@ -86,6 +95,18 @@ python scripts/compressing_embeddings.py -e "embeddings/PISCES/esm2_150M/" -o "e
 ```bash
 # with the compressed embedding we can run the regression model, see script for more details
 python scripts/reg_LassoCV.py -i "embeddings/PISCES_compressed/esm2_150M/embed_pisces_mean.pkl" -m "data/PISCES_metadata/SS_H.csv" -o "results/lassoCV/PISCES/esm2_150M/SS_H_esm2_150M_mean.csv"
+```
+
+5. **Fine Tuning**:  
+```bash
+# All the data and scripts required to fine esm2 model are available in this repositoty.
+# I used 4 GPUs on AMD Instinct™ MI100 GPUs, which has 32Gb of memory. Feel free to increase batch size if your machine allow.
+
+## To fine-tune one DMS dataset run:
+python scripts/LitESM2ne_Lora_trainer.py -i data/DMS_metadata/BLAT_ECOLX_Tenaillon2013_metadata.csv -o results/fineTune/test --batch_size 2
+
+## To fine-tune all the 31 DMS datasets, as presented in our results, run:
+scripts/LitESM2ne_run.sh 
 ```
 
 #### Footnote    
