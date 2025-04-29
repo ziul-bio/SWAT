@@ -5,7 +5,7 @@
 [![GPLv3 license](https://img.shields.io/badge/License-GPLv3-lightgrey.svg)](http://perso.crans.org/besson/LICENSE.html)
 
 
-# Scaling Down for Efficiency: Medium-Sized Transformer Models for Protein Sequence Transfer Learning
+# Medium-sized protein language models perform well at transfer learning on realistic datasets
 ![plot](/figures/fig1_scheme.png)
 
 
