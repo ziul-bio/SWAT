@@ -68,12 +68,13 @@ def extract_mean_representations(model, fasta_file):
     
     with torch.no_grad():  # Disable gradient calculations
         for batch_ids, batch_lengths, batch_tokens in tqdm(data_loader, desc="Processing batches", leave=False):
-            output = model(batch_tokens)
-            logits, embeddings, hiddens = (
-                output.sequence_logits,
-                output.embeddings,
-                output.hidden_states,
-            )
+            with torch.autocast(device_type='cuda', enabled=False): # Disable autocasting for mixed precision
+                output = model(batch_tokens)
+                logits, embeddings, hiddens = (
+                    output.sequence_logits,
+                    output.embeddings,
+                    output.hidden_states,
+                )
 
             for i, ID in enumerate(batch_ids):
             # Extract the last hidden states for the sequence
@@ -107,10 +108,12 @@ def main():
     # Load the model based on the checkpoint identifier
     if model_checkpoint == 'esmc-300m':
         model = ESMC.from_pretrained("esmc_300m").to(device) # "cuda" or "cpu"
+        model.to(torch.float32)
         print("Model transferred to device:", model.device)
     
     elif model_checkpoint == 'esmc-600m':
         model = ESMC.from_pretrained("esmc_600m").to(device)
+        model.to(torch.float32)
         print("Model transferred to device:", model.device)
     else:
         print("Model not found!")
