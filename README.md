@@ -6,7 +6,7 @@
 
 
 # Medium-sized protein language models perform well at transfer learning on realistic datasets
-![plot](/figures/fig1_scheme.png)
+![plot](/figures/banner.png)
 
 
 # About the project:
